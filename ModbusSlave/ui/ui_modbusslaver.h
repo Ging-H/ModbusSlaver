@@ -20,6 +20,7 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
@@ -37,7 +38,10 @@ class Ui_ModbusSlaver
 public:
     QAction *actionModbusPro;
     QAction *actionHelp;
-    QAction *actionRename;
+    QAction *actionHex;
+    QAction *actionDecimal;
+    QAction *action_AB_CD;
+    QAction *action_CD_AB;
     QWidget *centralWidget;
     QGridLayout *gridLayout_2;
     QGroupBox *QGBSerialConfig;
@@ -55,10 +59,11 @@ public:
     QComboBox *cbbVerify;
     QLabel *lblStopBit;
     QComboBox *cbbStopBit;
-    QTextEdit *txtMessage;
+    QSplitter *splitter_3;
     QSplitter *splitter;
-    QTableWidget *tableWidget;
-    QTableWidget *tableWidget_2;
+    QTableWidget *tblCoil;
+    QTableWidget *tblReg;
+    QTextEdit *txtMessage;
     QGroupBox *groupBox_2;
     QCheckBox *ckbInsertCRC;
     QToolButton *toolButton;
@@ -66,7 +71,15 @@ public:
     QRadioButton *rdbRTU;
     QRadioButton *rdbASCII;
     QFrame *line;
-    QRadioButton *radioButton;
+    QLineEdit *txtCoilStartAddr;
+    QFrame *line_2;
+    QLineEdit *txtRegStartAddr;
+    QLineEdit *txtCoilNum;
+    QLineEdit *txtRegNum;
+    QCheckBox *ckbCoilHideAlias;
+    QCheckBox *ckbCoilHideAddr;
+    QCheckBox *ckbRegHideAlias;
+    QCheckBox *ckbRegHideAddr;
     QToolBar *toolBar;
     QButtonGroup *bgpMSS;
 
@@ -74,14 +87,20 @@ public:
     {
         if (ModbusSlaver->objectName().isEmpty())
             ModbusSlaver->setObjectName(QStringLiteral("ModbusSlaver"));
-        ModbusSlaver->resize(793, 630);
+        ModbusSlaver->resize(693, 500);
         ModbusSlaver->setMinimumSize(QSize(0, 0));
         actionModbusPro = new QAction(ModbusSlaver);
         actionModbusPro->setObjectName(QStringLiteral("actionModbusPro"));
         actionHelp = new QAction(ModbusSlaver);
         actionHelp->setObjectName(QStringLiteral("actionHelp"));
-        actionRename = new QAction(ModbusSlaver);
-        actionRename->setObjectName(QStringLiteral("actionRename"));
+        actionHex = new QAction(ModbusSlaver);
+        actionHex->setObjectName(QStringLiteral("actionHex"));
+        actionDecimal = new QAction(ModbusSlaver);
+        actionDecimal->setObjectName(QStringLiteral("actionDecimal"));
+        action_AB_CD = new QAction(ModbusSlaver);
+        action_AB_CD->setObjectName(QStringLiteral("action_AB_CD"));
+        action_CD_AB = new QAction(ModbusSlaver);
+        action_CD_AB->setObjectName(QStringLiteral("action_CD_AB"));
         centralWidget = new QWidget(ModbusSlaver);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout_2 = new QGridLayout(centralWidget);
@@ -96,7 +115,7 @@ public:
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(QGBSerialConfig->sizePolicy().hasHeightForWidth());
         QGBSerialConfig->setSizePolicy(sizePolicy);
-        QGBSerialConfig->setMinimumSize(QSize(171, 221));
+        QGBSerialConfig->setMinimumSize(QSize(171, 205));
         QGBSerialConfig->setMaximumSize(QSize(171, 16777215));
         QGBSerialConfig->setStyleSheet(QStringLiteral(""));
         QGBSerialConfig->setFlat(false);
@@ -193,78 +212,84 @@ public:
 
         gridLayout_2->addWidget(QGBSerialConfig, 0, 0, 1, 1);
 
-        txtMessage = new QTextEdit(centralWidget);
-        txtMessage->setObjectName(QStringLiteral("txtMessage"));
-        txtMessage->setReadOnly(true);
-
-        gridLayout_2->addWidget(txtMessage, 2, 1, 1, 1);
-
-        splitter = new QSplitter(centralWidget);
+        splitter_3 = new QSplitter(centralWidget);
+        splitter_3->setObjectName(QStringLiteral("splitter_3"));
+        splitter_3->setOrientation(Qt::Vertical);
+        splitter = new QSplitter(splitter_3);
         splitter->setObjectName(QStringLiteral("splitter"));
         splitter->setOrientation(Qt::Horizontal);
-        tableWidget = new QTableWidget(splitter);
-        if (tableWidget->columnCount() < 2)
-            tableWidget->setColumnCount(2);
+        tblCoil = new QTableWidget(splitter);
+        if (tblCoil->columnCount() < 2)
+            tblCoil->setColumnCount(2);
         QTableWidgetItem *__qtablewidgetitem = new QTableWidgetItem();
-        tableWidget->setHorizontalHeaderItem(0, __qtablewidgetitem);
+        tblCoil->setHorizontalHeaderItem(0, __qtablewidgetitem);
         QTableWidgetItem *__qtablewidgetitem1 = new QTableWidgetItem();
-        tableWidget->setHorizontalHeaderItem(1, __qtablewidgetitem1);
-        if (tableWidget->rowCount() < 7)
-            tableWidget->setRowCount(7);
+        tblCoil->setHorizontalHeaderItem(1, __qtablewidgetitem1);
+        if (tblCoil->rowCount() < 8)
+            tblCoil->setRowCount(8);
         QTableWidgetItem *__qtablewidgetitem2 = new QTableWidgetItem();
-        tableWidget->setVerticalHeaderItem(0, __qtablewidgetitem2);
+        tblCoil->setVerticalHeaderItem(0, __qtablewidgetitem2);
         QTableWidgetItem *__qtablewidgetitem3 = new QTableWidgetItem();
-        tableWidget->setVerticalHeaderItem(1, __qtablewidgetitem3);
+        tblCoil->setVerticalHeaderItem(1, __qtablewidgetitem3);
         QTableWidgetItem *__qtablewidgetitem4 = new QTableWidgetItem();
-        tableWidget->setVerticalHeaderItem(2, __qtablewidgetitem4);
+        tblCoil->setVerticalHeaderItem(2, __qtablewidgetitem4);
         QTableWidgetItem *__qtablewidgetitem5 = new QTableWidgetItem();
-        tableWidget->setVerticalHeaderItem(3, __qtablewidgetitem5);
+        tblCoil->setVerticalHeaderItem(3, __qtablewidgetitem5);
         QTableWidgetItem *__qtablewidgetitem6 = new QTableWidgetItem();
-        tableWidget->setVerticalHeaderItem(4, __qtablewidgetitem6);
+        tblCoil->setVerticalHeaderItem(4, __qtablewidgetitem6);
         QTableWidgetItem *__qtablewidgetitem7 = new QTableWidgetItem();
-        tableWidget->setVerticalHeaderItem(5, __qtablewidgetitem7);
+        tblCoil->setVerticalHeaderItem(5, __qtablewidgetitem7);
         QTableWidgetItem *__qtablewidgetitem8 = new QTableWidgetItem();
-        tableWidget->setVerticalHeaderItem(6, __qtablewidgetitem8);
+        tblCoil->setVerticalHeaderItem(6, __qtablewidgetitem8);
         QTableWidgetItem *__qtablewidgetitem9 = new QTableWidgetItem();
-        tableWidget->setItem(0, 0, __qtablewidgetitem9);
+        tblCoil->setVerticalHeaderItem(7, __qtablewidgetitem9);
         QTableWidgetItem *__qtablewidgetitem10 = new QTableWidgetItem();
-        __qtablewidgetitem10->setCheckState(Qt::Unchecked);
-        tableWidget->setItem(0, 1, __qtablewidgetitem10);
-        tableWidget->setObjectName(QStringLiteral("tableWidget"));
-        tableWidget->setMinimumSize(QSize(235, 0));
-        splitter->addWidget(tableWidget);
-        tableWidget->horizontalHeader()->setVisible(true);
-        tableWidget->horizontalHeader()->setDefaultSectionSize(100);
-        tableWidget->verticalHeader()->setDefaultSectionSize(25);
-        tableWidget_2 = new QTableWidget(splitter);
-        if (tableWidget_2->columnCount() < 2)
-            tableWidget_2->setColumnCount(2);
+        tblCoil->setItem(0, 0, __qtablewidgetitem10);
         QTableWidgetItem *__qtablewidgetitem11 = new QTableWidgetItem();
-        tableWidget_2->setHorizontalHeaderItem(0, __qtablewidgetitem11);
+        __qtablewidgetitem11->setCheckState(Qt::Unchecked);
+        tblCoil->setItem(0, 1, __qtablewidgetitem11);
+        tblCoil->setObjectName(QStringLiteral("tblCoil"));
+        tblCoil->setMinimumSize(QSize(235, 0));
+        tblCoil->setGridStyle(Qt::DashDotLine);
+        tblCoil->setSortingEnabled(false);
+        tblCoil->setWordWrap(false);
+        tblCoil->setCornerButtonEnabled(false);
+        splitter->addWidget(tblCoil);
+        tblReg = new QTableWidget(splitter);
+        if (tblReg->columnCount() < 2)
+            tblReg->setColumnCount(2);
         QTableWidgetItem *__qtablewidgetitem12 = new QTableWidgetItem();
-        tableWidget_2->setHorizontalHeaderItem(1, __qtablewidgetitem12);
-        if (tableWidget_2->rowCount() < 7)
-            tableWidget_2->setRowCount(7);
+        tblReg->setHorizontalHeaderItem(0, __qtablewidgetitem12);
         QTableWidgetItem *__qtablewidgetitem13 = new QTableWidgetItem();
-        tableWidget_2->setVerticalHeaderItem(0, __qtablewidgetitem13);
+        tblReg->setHorizontalHeaderItem(1, __qtablewidgetitem13);
+        if (tblReg->rowCount() < 7)
+            tblReg->setRowCount(7);
         QTableWidgetItem *__qtablewidgetitem14 = new QTableWidgetItem();
-        tableWidget_2->setVerticalHeaderItem(1, __qtablewidgetitem14);
+        tblReg->setVerticalHeaderItem(0, __qtablewidgetitem14);
         QTableWidgetItem *__qtablewidgetitem15 = new QTableWidgetItem();
-        tableWidget_2->setVerticalHeaderItem(2, __qtablewidgetitem15);
+        tblReg->setVerticalHeaderItem(1, __qtablewidgetitem15);
         QTableWidgetItem *__qtablewidgetitem16 = new QTableWidgetItem();
-        tableWidget_2->setVerticalHeaderItem(3, __qtablewidgetitem16);
+        tblReg->setVerticalHeaderItem(2, __qtablewidgetitem16);
         QTableWidgetItem *__qtablewidgetitem17 = new QTableWidgetItem();
-        tableWidget_2->setVerticalHeaderItem(4, __qtablewidgetitem17);
+        tblReg->setVerticalHeaderItem(3, __qtablewidgetitem17);
         QTableWidgetItem *__qtablewidgetitem18 = new QTableWidgetItem();
-        tableWidget_2->setVerticalHeaderItem(5, __qtablewidgetitem18);
+        tblReg->setVerticalHeaderItem(4, __qtablewidgetitem18);
         QTableWidgetItem *__qtablewidgetitem19 = new QTableWidgetItem();
-        tableWidget_2->setVerticalHeaderItem(6, __qtablewidgetitem19);
-        tableWidget_2->setObjectName(QStringLiteral("tableWidget_2"));
-        tableWidget_2->setMinimumSize(QSize(235, 0));
-        splitter->addWidget(tableWidget_2);
-        tableWidget_2->verticalHeader()->setDefaultSectionSize(25);
+        tblReg->setVerticalHeaderItem(5, __qtablewidgetitem19);
+        QTableWidgetItem *__qtablewidgetitem20 = new QTableWidgetItem();
+        tblReg->setVerticalHeaderItem(6, __qtablewidgetitem20);
+        tblReg->setObjectName(QStringLiteral("tblReg"));
+        tblReg->setMinimumSize(QSize(235, 0));
+        tblReg->setGridStyle(Qt::DashDotLine);
+        splitter->addWidget(tblReg);
+        tblReg->verticalHeader()->setDefaultSectionSize(25);
+        splitter_3->addWidget(splitter);
+        txtMessage = new QTextEdit(splitter_3);
+        txtMessage->setObjectName(QStringLiteral("txtMessage"));
+        txtMessage->setReadOnly(true);
+        splitter_3->addWidget(txtMessage);
 
-        gridLayout_2->addWidget(splitter, 0, 1, 2, 1);
+        gridLayout_2->addWidget(splitter_3, 0, 1, 2, 1);
 
         groupBox_2 = new QGroupBox(centralWidget);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
@@ -299,14 +324,40 @@ public:
         splitter_2->addWidget(rdbASCII);
         line = new QFrame(groupBox_2);
         line->setObjectName(QStringLiteral("line"));
-        line->setGeometry(QRect(7, 115, 151, 10));
+        line->setGeometry(QRect(7, 110, 151, 10));
         line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
-        radioButton = new QRadioButton(groupBox_2);
-        radioButton->setObjectName(QStringLiteral("radioButton"));
-        radioButton->setGeometry(QRect(15, 130, 91, 18));
+        txtCoilStartAddr = new QLineEdit(groupBox_2);
+        txtCoilStartAddr->setObjectName(QStringLiteral("txtCoilStartAddr"));
+        txtCoilStartAddr->setGeometry(QRect(10, 145, 71, 20));
+        line_2 = new QFrame(groupBox_2);
+        line_2->setObjectName(QStringLiteral("line_2"));
+        line_2->setGeometry(QRect(12, 165, 151, 16));
+        line_2->setFrameShape(QFrame::HLine);
+        line_2->setFrameShadow(QFrame::Sunken);
+        txtRegStartAddr = new QLineEdit(groupBox_2);
+        txtRegStartAddr->setObjectName(QStringLiteral("txtRegStartAddr"));
+        txtRegStartAddr->setGeometry(QRect(10, 210, 71, 20));
+        txtCoilNum = new QLineEdit(groupBox_2);
+        txtCoilNum->setObjectName(QStringLiteral("txtCoilNum"));
+        txtCoilNum->setGeometry(QRect(85, 145, 76, 20));
+        txtRegNum = new QLineEdit(groupBox_2);
+        txtRegNum->setObjectName(QStringLiteral("txtRegNum"));
+        txtRegNum->setGeometry(QRect(85, 210, 76, 20));
+        ckbCoilHideAlias = new QCheckBox(groupBox_2);
+        ckbCoilHideAlias->setObjectName(QStringLiteral("ckbCoilHideAlias"));
+        ckbCoilHideAlias->setGeometry(QRect(10, 125, 71, 18));
+        ckbCoilHideAddr = new QCheckBox(groupBox_2);
+        ckbCoilHideAddr->setObjectName(QStringLiteral("ckbCoilHideAddr"));
+        ckbCoilHideAddr->setGeometry(QRect(85, 125, 71, 18));
+        ckbRegHideAlias = new QCheckBox(groupBox_2);
+        ckbRegHideAlias->setObjectName(QStringLiteral("ckbRegHideAlias"));
+        ckbRegHideAlias->setGeometry(QRect(10, 185, 71, 18));
+        ckbRegHideAddr = new QCheckBox(groupBox_2);
+        ckbRegHideAddr->setObjectName(QStringLiteral("ckbRegHideAddr"));
+        ckbRegHideAddr->setGeometry(QRect(85, 185, 71, 18));
 
-        gridLayout_2->addWidget(groupBox_2, 1, 0, 2, 1);
+        gridLayout_2->addWidget(groupBox_2, 1, 0, 1, 1);
 
         ModbusSlaver->setCentralWidget(centralWidget);
         toolBar = new QToolBar(ModbusSlaver);
@@ -326,6 +377,7 @@ public:
         toolBar->addAction(actionModbusPro);
 
         retranslateUi(ModbusSlaver);
+        QObject::connect(toolButton, SIGNAL(clicked()), txtMessage, SLOT(clear()));
 
         btnOpenPort->setDefault(false);
 
@@ -338,7 +390,10 @@ public:
         ModbusSlaver->setWindowTitle(QApplication::translate("ModbusSlaver", "ModbusTool", Q_NULLPTR));
         actionModbusPro->setText(QApplication::translate("ModbusSlaver", "Modbus\345\215\217\350\256\256", Q_NULLPTR));
         actionHelp->setText(QApplication::translate("ModbusSlaver", "\345\270\256\345\212\251\350\257\264\346\230\216", Q_NULLPTR));
-        actionRename->setText(QApplication::translate("ModbusSlaver", "\351\207\215\345\221\275\345\220\215", Q_NULLPTR));
+        actionHex->setText(QApplication::translate("ModbusSlaver", "\345\215\201\345\205\255\350\277\233\345\210\266", Q_NULLPTR));
+        actionDecimal->setText(QApplication::translate("ModbusSlaver", "\345\215\201\350\277\233\345\210\266", Q_NULLPTR));
+        action_AB_CD->setText(QApplication::translate("ModbusSlaver", "\346\265\256\347\202\271\346\225\260 AB CD", Q_NULLPTR));
+        action_CD_AB->setText(QApplication::translate("ModbusSlaver", "\346\265\256\347\202\271\346\225\260 CD AB", Q_NULLPTR));
         QGBSerialConfig->setTitle(QApplication::translate("ModbusSlaver", "\344\270\262\345\217\243\350\256\276\347\275\256", Q_NULLPTR));
         btnOpenPort->setText(QApplication::translate("ModbusSlaver", "\346\211\223\345\274\200\344\270\262\345\217\243", Q_NULLPTR));
 #ifndef QT_NO_TOOLTIP
@@ -350,55 +405,64 @@ public:
         lblDataBit->setText(QApplication::translate("ModbusSlaver", "\346\225\260\346\215\256\344\275\215", Q_NULLPTR));
         lblVerify->setText(QApplication::translate("ModbusSlaver", "\346\240\241\351\252\214", Q_NULLPTR));
         lblStopBit->setText(QApplication::translate("ModbusSlaver", "\345\201\234\346\255\242\344\275\215", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem = tableWidget->horizontalHeaderItem(0);
+        QTableWidgetItem *___qtablewidgetitem = tblCoil->horizontalHeaderItem(0);
         ___qtablewidgetitem->setText(QApplication::translate("ModbusSlaver", "\345\210\253\345\220\215", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem1 = tableWidget->horizontalHeaderItem(1);
+        QTableWidgetItem *___qtablewidgetitem1 = tblCoil->horizontalHeaderItem(1);
         ___qtablewidgetitem1->setText(QApplication::translate("ModbusSlaver", "\345\200\274", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem2 = tableWidget->verticalHeaderItem(0);
+        QTableWidgetItem *___qtablewidgetitem2 = tblCoil->verticalHeaderItem(0);
         ___qtablewidgetitem2->setText(QApplication::translate("ModbusSlaver", "0000", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem3 = tableWidget->verticalHeaderItem(1);
-        ___qtablewidgetitem3->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem4 = tableWidget->verticalHeaderItem(2);
+        QTableWidgetItem *___qtablewidgetitem3 = tblCoil->verticalHeaderItem(1);
+        ___qtablewidgetitem3->setText(QApplication::translate("ModbusSlaver", "222", Q_NULLPTR));
+        QTableWidgetItem *___qtablewidgetitem4 = tblCoil->verticalHeaderItem(2);
         ___qtablewidgetitem4->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem5 = tableWidget->verticalHeaderItem(3);
+        QTableWidgetItem *___qtablewidgetitem5 = tblCoil->verticalHeaderItem(3);
         ___qtablewidgetitem5->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem6 = tableWidget->verticalHeaderItem(4);
+        QTableWidgetItem *___qtablewidgetitem6 = tblCoil->verticalHeaderItem(4);
         ___qtablewidgetitem6->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem7 = tableWidget->verticalHeaderItem(5);
+        QTableWidgetItem *___qtablewidgetitem7 = tblCoil->verticalHeaderItem(5);
         ___qtablewidgetitem7->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem8 = tableWidget->verticalHeaderItem(6);
+        QTableWidgetItem *___qtablewidgetitem8 = tblCoil->verticalHeaderItem(6);
         ___qtablewidgetitem8->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
+        QTableWidgetItem *___qtablewidgetitem9 = tblCoil->verticalHeaderItem(7);
+        ___qtablewidgetitem9->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
 
-        const bool __sortingEnabled = tableWidget->isSortingEnabled();
-        tableWidget->setSortingEnabled(false);
-        QTableWidgetItem *___qtablewidgetitem9 = tableWidget->item(0, 0);
-        ___qtablewidgetitem9->setText(QApplication::translate("ModbusSlaver", "234234", Q_NULLPTR));
-        tableWidget->setSortingEnabled(__sortingEnabled);
+        const bool __sortingEnabled = tblCoil->isSortingEnabled();
+        tblCoil->setSortingEnabled(false);
+        QTableWidgetItem *___qtablewidgetitem10 = tblCoil->item(0, 0);
+        ___qtablewidgetitem10->setText(QApplication::translate("ModbusSlaver", "234234", Q_NULLPTR));
+        tblCoil->setSortingEnabled(__sortingEnabled);
 
-        QTableWidgetItem *___qtablewidgetitem10 = tableWidget_2->horizontalHeaderItem(0);
-        ___qtablewidgetitem10->setText(QApplication::translate("ModbusSlaver", "\345\210\253\345\220\215", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem11 = tableWidget_2->horizontalHeaderItem(1);
-        ___qtablewidgetitem11->setText(QApplication::translate("ModbusSlaver", "\345\200\274", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem12 = tableWidget_2->verticalHeaderItem(0);
-        ___qtablewidgetitem12->setText(QApplication::translate("ModbusSlaver", "0000", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem13 = tableWidget_2->verticalHeaderItem(1);
-        ___qtablewidgetitem13->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem14 = tableWidget_2->verticalHeaderItem(2);
+        QTableWidgetItem *___qtablewidgetitem11 = tblReg->horizontalHeaderItem(0);
+        ___qtablewidgetitem11->setText(QApplication::translate("ModbusSlaver", "\345\210\253\345\220\215", Q_NULLPTR));
+        QTableWidgetItem *___qtablewidgetitem12 = tblReg->horizontalHeaderItem(1);
+        ___qtablewidgetitem12->setText(QApplication::translate("ModbusSlaver", "\345\200\274", Q_NULLPTR));
+        QTableWidgetItem *___qtablewidgetitem13 = tblReg->verticalHeaderItem(0);
+        ___qtablewidgetitem13->setText(QApplication::translate("ModbusSlaver", "0000", Q_NULLPTR));
+        QTableWidgetItem *___qtablewidgetitem14 = tblReg->verticalHeaderItem(1);
         ___qtablewidgetitem14->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem15 = tableWidget_2->verticalHeaderItem(3);
+        QTableWidgetItem *___qtablewidgetitem15 = tblReg->verticalHeaderItem(2);
         ___qtablewidgetitem15->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem16 = tableWidget_2->verticalHeaderItem(4);
+        QTableWidgetItem *___qtablewidgetitem16 = tblReg->verticalHeaderItem(3);
         ___qtablewidgetitem16->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem17 = tableWidget_2->verticalHeaderItem(5);
+        QTableWidgetItem *___qtablewidgetitem17 = tblReg->verticalHeaderItem(4);
         ___qtablewidgetitem17->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
-        QTableWidgetItem *___qtablewidgetitem18 = tableWidget_2->verticalHeaderItem(6);
+        QTableWidgetItem *___qtablewidgetitem18 = tblReg->verticalHeaderItem(5);
         ___qtablewidgetitem18->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
+        QTableWidgetItem *___qtablewidgetitem19 = tblReg->verticalHeaderItem(6);
+        ___qtablewidgetitem19->setText(QApplication::translate("ModbusSlaver", "\346\226\260\345\273\272\350\241\214", Q_NULLPTR));
         groupBox_2->setTitle(QApplication::translate("ModbusSlaver", "Config", Q_NULLPTR));
         ckbInsertCRC->setText(QApplication::translate("ModbusSlaver", "\350\207\252\345\212\250\346\267\273\345\212\240\346\240\241\351\252\214\347\240\201", Q_NULLPTR));
         toolButton->setText(QApplication::translate("ModbusSlaver", "\346\270\205\347\251\272", Q_NULLPTR));
         rdbRTU->setText(QApplication::translate("ModbusSlaver", "RTU", Q_NULLPTR));
         rdbASCII->setText(QApplication::translate("ModbusSlaver", "ASCII", Q_NULLPTR));
-        radioButton->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\210\253\345\220\215\345\210\227", Q_NULLPTR));
+        txtCoilStartAddr->setPlaceholderText(QApplication::translate("ModbusSlaver", "\350\265\267\345\247\213\345\234\260\345\235\200", Q_NULLPTR));
+        txtRegStartAddr->setPlaceholderText(QApplication::translate("ModbusSlaver", "\350\265\267\345\247\213\345\234\260\345\235\200", Q_NULLPTR));
+        txtCoilNum->setPlaceholderText(QApplication::translate("ModbusSlaver", "\346\225\260\351\207\217", Q_NULLPTR));
+        txtRegNum->setPlaceholderText(QApplication::translate("ModbusSlaver", "\346\225\260\351\207\217", Q_NULLPTR));
+        ckbCoilHideAlias->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\210\253\345\220\215", Q_NULLPTR));
+        ckbCoilHideAddr->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\234\260\345\235\200", Q_NULLPTR));
+        ckbRegHideAlias->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\210\253\345\220\215", Q_NULLPTR));
+        ckbRegHideAddr->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\234\260\345\235\200", Q_NULLPTR));
         toolBar->setWindowTitle(QApplication::translate("ModbusSlaver", "toolBar", Q_NULLPTR));
     } // retranslateUi
 

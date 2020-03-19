@@ -76,7 +76,10 @@ public:
     quint8 verifyLRC(quint8 *data, quint32 length);
     void sendFrame(QByteArray txbuf);
     void insertLogAtTime(QString msg);
-    void getInitTxt();
+//    void getInitTxt();
+
+    void setCoilStartAddr(quint16 startAddr);
+    void setRegStartAddr(quint16 startAddr);
 
 
 signals:
@@ -84,9 +87,9 @@ signals:
 
 
 public slots :
-    void slots_RxCallback();
+//    void slots_RxCallback();
 
-    void slots_errorHandler(QSerialPort::SerialPortError error);
+//    void slots_errorHandler(QSerialPort::SerialPortError error);
 
 
 
@@ -95,8 +98,26 @@ private slots:
 
     void on_btnOpenPort_clicked(bool checked);
 
+    void on_txtCoilStartAddr_editingFinished();
+
+    void on_ckbCoilHideAlias_clicked(bool checked);
+
+    void on_ckbCoilHideAddr_clicked(bool checked);
+
+    void on_txtCoilNum_editingFinished();
+
+//    void on_spbCoilRows_editingFinished();
+
+    void on_ckbRegHideAlias_clicked(bool checked);
+
+    void on_ckbRegHideAddr_clicked(bool checked);
+
+    void on_txtRegStartAddr_editingFinished();
+
+    void on_txtRegNum_editingFinished();
+
 protected :
-    void closeEvent(QCloseEvent *event);
+//    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::ModbusSlaver *ui;
