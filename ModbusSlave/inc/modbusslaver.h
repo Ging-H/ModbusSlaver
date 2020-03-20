@@ -13,6 +13,8 @@
 #include <QCloseEvent>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QTableWidgetItem>
+
 
 namespace Ui {
 class ModbusSlaver;
@@ -81,6 +83,9 @@ public:
     void setCoilStartAddr(quint16 startAddr);
     void setRegStartAddr(quint16 startAddr);
 
+    void setCoilInit();
+    void setRegInit();
+
 
 signals:
     void signal_writtenData(QByteArray txBuf);
@@ -115,6 +120,12 @@ private slots:
     void on_txtRegStartAddr_editingFinished();
 
     void on_txtRegNum_editingFinished();
+
+    void on_tblCoil_cellChanged(int row, int column);
+
+    void on_btnSave_clicked();
+
+    void on_btnLoad_clicked();
 
 protected :
 //    void closeEvent(QCloseEvent *event);

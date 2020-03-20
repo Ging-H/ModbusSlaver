@@ -1,6 +1,7 @@
 #include "modbusslaver.h"
 #include "ui_modbusslaver.h"
 #include <QHeaderView>
+#include <QFileDialog>
 //#include <QMenu>
 //#include <QSpacerItem>
 //#include <QAbstractSpinBox>
@@ -23,7 +24,6 @@ ModbusSlaver::ModbusSlaver(QWidget *parent) :
 
     this->setWindowTitle("ModbusTool-Slaver - ing10 v1.0");
     ui->tblCoil->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch );// 自适应列宽
-
 }
 
 ModbusSlaver::~ModbusSlaver()
@@ -132,6 +132,16 @@ void ModbusSlaver::setLineEditInputType()
     QRegExpValidator *reg1 = new QRegExpValidator(regExp,this);
     ui->txtCoilStartAddr->setValidator(reg1);
     ui->txtRegStartAddr->setValidator(reg1);
+
+    ui->txtCoilStartAddr->setText("0000");
+    ui->txtCoilStartAddr->editingFinished();
+    ui->txtCoilNum->setText("10");
+    ui->txtCoilNum->editingFinished();
+
+    ui->txtRegStartAddr->setText("0000");
+    ui->txtRegStartAddr->editingFinished();
+    ui->txtRegNum->setText("10");
+    ui->txtRegNum->editingFinished();
 }
 
 /**
@@ -163,7 +173,7 @@ void ModbusSlaver::on_txtCoilStartAddr_editingFinished()
     this->setCoilStartAddr(startAddr);
 }
 /**
- * @brief ModbusSlaver::on_ckbCoilHideAlias_clicked 隐藏别名
+ * @brief ModbusSlaver::on_ckbCoilHideAlias_clicked 隐藏线圈别名
  * @param checked
  */
 void ModbusSlaver::on_ckbCoilHideAlias_clicked(bool checked)
@@ -174,7 +184,7 @@ void ModbusSlaver::on_ckbCoilHideAlias_clicked(bool checked)
         ui->tblCoil->showColumn(0);
 }
 /**
- * @brief ModbusSlaver::on_ckbCoilHideAddr_clicked 隐藏地址
+ * @brief ModbusSlaver::on_ckbCoilHideAddr_clicked 隐藏线圈地址
  * @param checked
  */
 void ModbusSlaver::on_ckbCoilHideAddr_clicked(bool checked)
@@ -200,12 +210,64 @@ void ModbusSlaver::on_txtCoilNum_editingFinished()
     if( (newCoilsNum + startAddr)>65536 ){
         newCoilsNum = 65536 - startAddr;
     }
+    disconnect(ui->tblCoil,SIGNAL(cellChanged(int,int)),this,SLOT(on_tblCoil_cellChanged(int,int)));
+
     ui->tblCoil->setRowCount(newCoilsNum);
     this->setCoilStartAddr(startAddr);
     ui->txtCoilNum->setText( QString("%1").arg(newCoilsNum));
+    this->setCoilInit();
+
+    connect(ui->tblCoil,SIGNAL(cellChanged(int,int)),this,SLOT(on_tblCoil_cellChanged(int,int)));
+}
+
+/**
+ * @brief ModbusSlaver::setCoilInit 线圈初始化
+ */
+void ModbusSlaver::setCoilInit()
+{
+    qint32 coilsNum = ui->tblCoil->rowCount();
+
+    for(qint32 i=0; i<coilsNum; i++ ) {
+        QTableWidgetItem *item = ui->tblCoil->item(i, 1);
+        if( item == NULL ){
+            item = new QTableWidgetItem();
+            item->setCheckState(Qt::Unchecked );
+            item->setFlags(item->flags() & (~Qt::ItemIsEditable));
+            item->setText("OFF");
+            ui->tblCoil->setItem(i,1,item);
+        }
+    }
+
+}
+
+/**
+ * @brief ModbusSlaver::on_tblCoil_cellChanged 单元格内容发生改变
+ * @param row
+ * @param column
+ */
+void ModbusSlaver::on_tblCoil_cellChanged(int row, int column)
+{
+    if(column != 1) return ;
+    QTableWidgetItem *item = ui->tblCoil->item(row, column);
+    if(item != NULL){
+        disconnect(ui->tblCoil,SIGNAL(cellChanged(int,int)),this,SLOT(on_tblCoil_cellChanged(int,int)));
+        if(item->checkState() == Qt::Checked){
+            item->setText("ON");
+            item->setBackgroundColor(QColor(127, 127, 127));
+        }else{
+            item->setText("OFF");
+            item->setBackgroundColor(QColor(255, 255, 255));
+        }
+        connect(ui->tblCoil,SIGNAL(cellChanged(int,int)),this,SLOT(on_tblCoil_cellChanged(int,int)));
+    }
 }
 
 
+
+/**
+ * @brief ModbusSlaver::setRegStartAddr  设置寄存器的起始地址
+ * @param startAddr
+ */
 void ModbusSlaver::setRegStartAddr(quint16 startAddr)
 {
     quint32 rows = startAddr + ui->tblReg->rowCount();
@@ -221,7 +283,10 @@ void ModbusSlaver::setRegStartAddr(quint16 startAddr)
     }
     ui->tblReg->setVerticalHeaderLabels( vHeaderLabel );
 }
-
+/**
+ * @brief ModbusSlaver::on_ckbRegHideAlias_clicked 隐藏寄存器别名
+ * @param checked
+ */
 void ModbusSlaver::on_ckbRegHideAlias_clicked(bool checked)
 {
     if(checked){
@@ -229,7 +294,10 @@ void ModbusSlaver::on_ckbRegHideAlias_clicked(bool checked)
     }else
         ui->tblReg->showColumn(0);
 }
-
+/**
+ * @brief ModbusSlaver::on_ckbRegHideAddr_clicked 隐藏地址
+ * @param checked
+ */
 void ModbusSlaver::on_ckbRegHideAddr_clicked(bool checked)
 {
     if(checked){
@@ -239,13 +307,17 @@ void ModbusSlaver::on_ckbRegHideAddr_clicked(bool checked)
     }
 }
 
-
+/**
+ * @brief ModbusSlaver::on_txtRegStartAddr_editingFinished 设置寄存器起始地址
+ */
 void ModbusSlaver::on_txtRegStartAddr_editingFinished()
 {
     quint16 startAddr = ui->txtRegStartAddr->text().toInt(nullptr,16);
     this->setRegStartAddr(startAddr);
 }
-
+/**
+ * @brief ModbusSlaver::on_txtRegNum_editingFinished 设置寄存器总数量
+ */
 void ModbusSlaver::on_txtRegNum_editingFinished()
 {
     quint32 startAddr = ui->tblReg->verticalHeaderItem(0)->text().toInt(nullptr,16);
@@ -261,8 +333,24 @@ void ModbusSlaver::on_txtRegNum_editingFinished()
     ui->tblReg->setRowCount(newRegsNum);
     this->setRegStartAddr(startAddr);
     ui->txtRegNum->setText( QString("%1").arg(newRegsNum));
+    this->setRegInit();
 }
+/**
+ * @brief ModbusSlaver::setRegInit 寄存器初始化
+ */
+void ModbusSlaver::setRegInit()
+{
+    qint32 RegsNum = ui->tblReg->rowCount();
 
+    for(qint32 i=0; i<RegsNum; i++ ) {
+        QTableWidgetItem *item = ui->tblReg->item(i, 1);
+        if( item == NULL ){
+            item = new QTableWidgetItem();
+            ui->tblReg->setItem(i,1,item);
+            item->setText("0000");
+        }
+    }
+}
 
 ///**
 // * @brief ModbusTool::sendFrame 发送数据帧
@@ -409,5 +497,137 @@ void ModbusSlaver::on_txtRegNum_editingFinished()
 //    settings.endGroup();
 //}
 
+/**
+ * @brief ModbusSlaver::on_btnSave_clicked 保存Coil和Reg表格
+ */
+void ModbusSlaver::on_btnSave_clicked()
+{
+    QString filePath = QFileDialog::getSaveFileName(this,"保存",qApp->applicationDirPath(),"*.ini");
+    QSettings settings(filePath, QSettings::IniFormat);
+
+    settings.setIniCodec("GBK"); // 设置编码器,支持中文读写
+
+    quint32 coilNums = ui->tblCoil->rowCount();
+    settings.beginGroup("coilTable");
+    settings.setValue( "StartAddr",  ui->tblCoil->verticalHeaderItem(0)->text() ); // 起始地址
+    settings.setValue( "HideAlias",  ui->ckbCoilHideAlias->checkState() ); // 隐藏别名
+    settings.setValue( "HideAddr",   ui->ckbCoilHideAddr->checkState() ); // 隐藏别名
+
+    settings.beginWriteArray("Coil");
+
+    for(quint32 i=0; i<coilNums; i++){
+        settings.setArrayIndex(i);
+
+        if(ui->tblCoil->item(i,0) == NULL ){
+            settings.setValue( "Alias",  "NULL" ); // 记录别名
+        }else{
+            if(ui->tblCoil->item(i,0)->text() != NULL)
+                settings.setValue( "Alias",  ui->tblCoil->item(i,0)->text() ); // 记录别名
+            else settings.setValue( "Alias",  "NULL" ); // 记录别名
+        }
+        settings.setValue( "Checked",  ui->tblCoil->item(i,1)->checkState() ); // 记录coils状态
+    }
+    settings.endArray();
+    settings.endGroup();
+
+    quint32 regNums = ui->tblReg->rowCount();
+    settings.beginGroup("regTable");
+    settings.setValue( "StartAddr",  ui->tblReg->verticalHeaderItem(0)->text() ); // 起始地址
+    settings.setValue( "HideAlias",  ui->ckbRegHideAlias->checkState() ); // 隐藏别名
+    settings.setValue( "HideAddr",   ui->ckbRegHideAddr->checkState() ); // 隐藏别名
+
+    settings.beginWriteArray("Register");
+
+    for(quint32 i=0; i<regNums; i++){
+        settings.setArrayIndex(i);
+
+        if(ui->tblReg->item(i,0) == NULL ){
+            settings.setValue( "Alias",  "NULL" ); // 记录别名
+        }else{
+            if(ui->tblReg->item(i,0)->text() != NULL)
+                settings.setValue( "Alias",  ui->tblReg->item(i,0)->text() ); // 记录别名
+            else settings.setValue( "Alias",  "NULL" ); // 记录别名
+        }
+        settings.setValue( "Value",  ui->tblReg->item(i,1)->text() ); // 记录Regs状态
+    }
+    settings.endArray();
+    settings.endGroup();
+}
+/**
+ * @brief ModbusSlaver::on_btnLoad_clicked 加载数据
+ */
+void ModbusSlaver::on_btnLoad_clicked()
+{
+    QString filePath = QFileDialog::getOpenFileName(this,"加载",qApp->applicationDirPath(),"*.ini");
+    QSettings settings(filePath, QSettings::IniFormat);
+
+    settings.setIniCodec("GBK"); // 设置编码器,支持中文读写
+
+    settings.beginGroup("coilTable");
+
+    quint16 startCoilAddr = settings.value("startAddr").toInt();
+    QString tmp1 = settings.value("startAddr").toString();
+    ui->txtCoilStartAddr->setText( tmp1 );
+    this->setCoilStartAddr(startCoilAddr);
+
+    quint32 coilNums = settings.beginReadArray("Coil");
+    ui->txtCoilNum->setText( QString::number(coilNums) );
+    ui->txtCoilNum->editingFinished();
 
 
+    Qt::CheckState hideCoilAddr = (Qt::CheckState)settings.value( "HideAlias" ).toInt();
+    Qt::CheckState hideCoilAlias = (Qt::CheckState)settings.value( "HideAlias" ).toInt();
+    ui->ckbCoilHideAddr->setChecked( hideCoilAddr );
+    ui->ckbCoilHideAlias->setChecked( hideCoilAlias );
+
+    for(quint32 i=0; i<coilNums; i++ ){
+        settings.setArrayIndex(i);
+        QString alias = settings.value("Alias").toString();
+        if( !alias.operator ==("NULL") ){
+            if( ui->tblCoil->item(i, 0) == NULL ){
+                QTableWidgetItem *item = new QTableWidgetItem();
+                ui->tblCoil->setItem(i, 0, item);
+            }
+            ui->tblCoil->item(i, 0)->setText(alias);
+        }
+        Qt::CheckState checked = (Qt::CheckState)settings.value( "Checked" ).toInt();
+        ui->tblCoil->item(i,1)->setCheckState(checked);
+    }
+
+    settings.endArray();
+    settings.endGroup();
+
+    settings.beginGroup("regTable");
+
+    quint16 startRegAddr = settings.value("startAddr").toInt();
+    QString tmp2 = settings.value("startAddr").toString();
+    ui->txtRegStartAddr->setText( tmp2 );
+    this->setRegStartAddr(startRegAddr);
+
+    quint32 regNums = settings.beginReadArray("Register");
+    ui->txtRegNum->setText( QString::number(regNums) );
+    ui->txtRegNum->editingFinished();
+
+
+    Qt::CheckState hideRegAddr = (Qt::CheckState)settings.value( "HideAlias" ).toInt();
+    Qt::CheckState hideRegAlias = (Qt::CheckState)settings.value( "HideAlias" ).toInt();
+    ui->ckbRegHideAddr->setChecked( hideRegAddr );
+    ui->ckbRegHideAlias->setChecked( hideRegAlias );
+
+    for(quint32 i=0; i<regNums; i++ ){
+        settings.setArrayIndex(i);
+        QString alias = settings.value("Alias").toString();
+        if( !alias.operator ==("NULL") ){
+            if( ui->tblReg->item(i, 0) == NULL ){
+                QTableWidgetItem *item = new QTableWidgetItem();
+                ui->tblReg->setItem(i, 0, item);
+            }
+            ui->tblReg->item(i, 0)->setText(alias);
+        }
+        QString value = settings.value( "Value" ).toString();
+        ui->tblReg->item(i,1)->setText(value);
+    }
+
+    settings.endArray();
+    settings.endGroup();
+}
