@@ -15,15 +15,10 @@ ModbusSlaver::ModbusSlaver(QWidget *parent) :
     ui->setupUi(this);
     currentPort = new BaseSerialComm();
     this->initComboBox_Config();
-//    connect(currentPort,SIGNAL(errorOccurred(QSerialPort::SerialPortError)),this,SLOT(slots_errorHandler( QSerialPort::SerialPortError)));
+    connect(currentPort,SIGNAL(errorOccurred(QSerialPort::SerialPortError)),this,SLOT(slots_errorHandler( QSerialPort::SerialPortError)));
     connect(this,SIGNAL(signal_writtenData(QByteArray)),currentPort,SLOT(slot_writtenData(QByteArray)));
-    this->setLineEditInputType();
-    ui->txtMessage->setStyleSheet("background-color: rgb(46, 47, 48);");
 
-//    this->getInitTxt();
-
-    this->setWindowTitle("ModbusTool-Slaver - ing10 v1.0");
-    ui->tblCoil->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch );// 自适应列宽
+    this->tableInit();
 }
 
 ModbusSlaver::~ModbusSlaver()
@@ -101,21 +96,30 @@ void ModbusSlaver::configPort()
     }
 }
 
-///* 串口错误信息处理 */
-//void ModbusSlaver::slots_errorHandler(QSerialPort::SerialPortError error)
-//{
-//    switch(error){
-//    case QSerialPort::DeviceNotFoundError:QMessageBox::information(NULL, tr("未找到设备"),  tr("检查设备是否已经连接,或者是否正常供电"), 0, 0);
-//        break;
-//    case QSerialPort::OpenError:
-//    case QSerialPort::PermissionError:QMessageBox::information(NULL, tr("打开失败"),  tr("检查设备是否已被其他软件占用"), 0, 0);
-//        break;
-//    default:
-//        break;
-//    }
-//}
+/* 串口错误信息处理 */
+void ModbusSlaver::slots_errorHandler(QSerialPort::SerialPortError error)
+{
+    switch(error){
+    case QSerialPort::DeviceNotFoundError:QMessageBox::information(NULL, tr("未找到设备"),  tr("检查设备是否已经连接,或者是否正常供电"), 0, 0);
+        break;
+    case QSerialPort::OpenError:
+    case QSerialPort::PermissionError:QMessageBox::information(NULL, tr("打开失败"),  tr("检查设备是否已被其他软件占用"), 0, 0);
+        break;
+    default:
+        break;
+    }
+}
 
 /*------------------------------ ui事件处理 --------------------------------------*/
+
+void ModbusSlaver::tableInit()
+{
+    this->setLineEditInputType();
+    this->setWindowTitle("ModbusTool-Slaver - ing10 v1.0");
+    ui->txtMessage->setStyleSheet("background-color: rgb(46, 47, 48);"); // 信息窗口背景颜色
+    ui->tblCoil->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch );// 自适应列宽
+    this->on_btnLoad_clicked(true); // 加载默认的数据
+}
 
 /**
  * @brief ModbusTool::setLineEditInputType 限制文本输入格式
@@ -133,15 +137,6 @@ void ModbusSlaver::setLineEditInputType()
     ui->txtCoilStartAddr->setValidator(reg1);
     ui->txtRegStartAddr->setValidator(reg1);
 
-    ui->txtCoilStartAddr->setText("0000");
-    ui->txtCoilStartAddr->editingFinished();
-    ui->txtCoilNum->setText("10");
-    ui->txtCoilNum->editingFinished();
-
-    ui->txtRegStartAddr->setText("0000");
-    ui->txtRegStartAddr->editingFinished();
-    ui->txtRegNum->setText("10");
-    ui->txtRegNum->editingFinished();
 }
 
 /**
@@ -152,12 +147,7 @@ void ModbusSlaver::setCoilStartAddr(quint16 startAddr)
 {
     quint32 rows = startAddr + ui->tblCoil->rowCount();
     QStringList vHeaderLabel;
-//    quint32 column = ui->tblCoil->columnCount()/2; // 适应列数
-//    quint32 delta = 0;
-
     for(quint32 i=startAddr; i<rows; i++){
-//        QString tmp1 = QString("%1").arg(i+delta,4,16,QLatin1Char('0'));
-//        delta = column - 1;
         QString tmp1 = QString("%1").arg(i, 4, 16, QLatin1Char('0'));
         vHeaderLabel<<tmp1.toUpper() ;
     }
@@ -262,8 +252,6 @@ void ModbusSlaver::on_tblCoil_cellChanged(int row, int column)
     }
 }
 
-
-
 /**
  * @brief ModbusSlaver::setRegStartAddr  设置寄存器的起始地址
  * @param startAddr
@@ -272,12 +260,8 @@ void ModbusSlaver::setRegStartAddr(quint16 startAddr)
 {
     quint32 rows = startAddr + ui->tblReg->rowCount();
     QStringList vHeaderLabel;
-//    quint32 column = ui->tblReg->columnCount()/2; // 适应列数
-//    quint32 delta = 0;
 
     for(quint32 i=startAddr; i<rows; i++){
-//        QString tmp1 = QString("%1").arg(i+delta,4,16,QLatin1Char('0'));
-//        delta = column - 1;
         QString tmp1 = QString("%1").arg(i, 4, 16, QLatin1Char('0'));
         vHeaderLabel<<tmp1.toUpper() ;
     }
@@ -386,203 +370,225 @@ void ModbusSlaver::setRegInit()
 
 ///*-------------------------  接收数据帧处理 -------------------------*/
 
-///**
-// * @brief ModbusTool::slots_RxCallback 串口接收数据,存储在dataBuf当中
-// */
-//void ModbusSlaver::slots_RxCallback()
-//{
-//    /*-------- 设置文本颜色 ----------*/
-//    ui->txtMessage->setTextColor(QColor(102, 163, 52));
-//    QByteArray tmp = currentPort->readAll();
-//    rxDataBuf.append(tmp);
-//    this->insertLogAtTime("Rx: " + rxDataBuf.toHex(' ').toUpper());
+/**
+ * @brief ModbusTool::slots_RxCallback 串口接收数据,存储在dataBuf当中
+ */
+void ModbusSlaver::slots_RxCallback()
+{
+    /*-------- 设置文本颜色 ----------*/
+    ui->txtMessage->setTextColor(QColor(102, 163, 52));
+    QByteArray tmp = currentPort->readAll();
+    rxDataBuf.append(tmp);
+    this->insertLogAtTime("Rx: " + rxDataBuf.toHex(' ').toUpper());
+    rxDataBuf.clear();
 
-//}
-///**
-// * @brief ModbusTool::insertLog 在信息框插入信息
-// * @param msg
-// */
-//void ModbusSlaver::insertLogAtTime(QString msg)
-//{
-//    /* 数据显示 */
-//    QTime currentTime = QTime::currentTime();
-//    QString txt = currentTime.toString("[hh:mm:ss.zzz]");
-//    ui->txtMessage->append( msg.prepend(txt.toLocal8Bit()));
-//}
+}
+/**
+ * @brief ModbusTool::insertLog 在信息框插入信息
+ * @param msg
+ */
+void ModbusSlaver::insertLogAtTime(QString msg)
+{
+    /* 数据显示 */
+    QTime currentTime = QTime::currentTime();
+    QString txt = currentTime.toString("[hh:mm:ss.zzz]");
+    ui->txtMessage->append( msg.prepend(txt.toLocal8Bit()));
+}
+/**
+ * @brief ModbusTool::sendFrame 发送数据帧
+ * @param txbuf 待发送的数据（不含校验码）
+ */
+void ModbusSlaver::sendFrame(QByteArray txbuf)
+{
+    /*-------- 设置文本颜色 ----------*/
+    ui->txtMessage->setTextColor(QColor(255, 128, 128));
+
+    /* RTU模式 */
+    if( ui->rdbRTU->isChecked() ){
+        if( ui->ckbInsertCRC->isChecked() ){
+            quint16 CRC = crc16_modbus_calc((quint8*)txbuf.data(), txbuf.size());
+            txbuf.append(CRC);
+            txbuf.append(CRC>>8);
+        }
+        emit signal_writtenData(txbuf);
+        this->insertLogAtTime("Tx: " + txbuf.toHex(' ').toUpper());
+
+    }else{/* ASCII模式 */
+        if( ui->ckbInsertCRC->isChecked() ){
+            quint8 LRC = verifyLRC((quint8*)txbuf.data(), txbuf.size());
+            txbuf.append(LRC);
+        }
+        QByteArray tmp = txbuf.toHex().toUpper().prepend(":");
+        tmp.append("\r\n"); // 0x0D 0x0A
+        emit signal_writtenData(tmp);
+        tmp.replace("\r\n","\\r\\n");
+        this->insertLogAtTime("Tx: " + tmp);
+    }
+}
 
 
-///*------------------------------------------------------------------------*/
 
-///*************************
-// * Name:    CRC-16/MODBUS x16+x15+x2+1
-// * Poly:    0x8005
-// * Init:    0xFFFF
-// * Refin:   True
-// * Refout:  True
-// * Xorout:  0x0000
-// * Note:
-//*************************/
-//static quint16 crc16Modbus_table[256] = {
-//0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241, 0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
-//0xCC01, 0x0CC0, 0x0D80, 0xCD41, 0x0F00, 0xCFC1, 0xCE81, 0x0E40, 0x0A00, 0xCAC1, 0xCB81, 0x0B40, 0xC901, 0x09C0, 0x0880, 0xC841,
-//0xD801, 0x18C0, 0x1980, 0xD941, 0x1B00, 0xDBC1, 0xDA81, 0x1A40, 0x1E00, 0xDEC1, 0xDF81, 0x1F40, 0xDD01, 0x1DC0, 0x1C80, 0xDC41,
-//0x1400, 0xD4C1, 0xD581, 0x1540, 0xD701, 0x17C0, 0x1680, 0xD641, 0xD201, 0x12C0, 0x1380, 0xD341, 0x1100, 0xD1C1, 0xD081, 0x1040,
-//0xF001, 0x30C0, 0x3180, 0xF141, 0x3300, 0xF3C1, 0xF281, 0x3240, 0x3600, 0xF6C1, 0xF781, 0x3740, 0xF501, 0x35C0, 0x3480, 0xF441,
-//0x3C00, 0xFCC1, 0xFD81, 0x3D40, 0xFF01, 0x3FC0, 0x3E80, 0xFE41, 0xFA01, 0x3AC0, 0x3B80, 0xFB41, 0x3900, 0xF9C1, 0xF881, 0x3840,
-//0x2800, 0xE8C1, 0xE981, 0x2940, 0xEB01, 0x2BC0, 0x2A80, 0xEA41, 0xEE01, 0x2EC0, 0x2F80, 0xEF41, 0x2D00, 0xEDC1, 0xEC81, 0x2C40,
-//0xE401, 0x24C0, 0x2580, 0xE541, 0x2700, 0xE7C1, 0xE681, 0x2640, 0x2200, 0xE2C1, 0xE381, 0x2340, 0xE101, 0x21C0, 0x2080, 0xE041,
-//0xA001, 0x60C0, 0x6180, 0xA141, 0x6300, 0xA3C1, 0xA281, 0x6240, 0x6600, 0xA6C1, 0xA781, 0x6740, 0xA501, 0x65C0, 0x6480, 0xA441,
-//0x6C00, 0xACC1, 0xAD81, 0x6D40, 0xAF01, 0x6FC0, 0x6E80, 0xAE41, 0xAA01, 0x6AC0, 0x6B80, 0xAB41, 0x6900, 0xA9C1, 0xA881, 0x6840,
-//0x7800, 0xB8C1, 0xB981, 0x7940, 0xBB01, 0x7BC0, 0x7A80, 0xBA41, 0xBE01, 0x7EC0, 0x7F80, 0xBF41, 0x7D00, 0xBDC1, 0xBC81, 0x7C40,
-//0xB401, 0x74C0, 0x7580, 0xB541, 0x7700, 0xB7C1, 0xB681, 0x7640, 0x7200, 0xB2C1, 0xB381, 0x7340, 0xB101, 0x71C0, 0x7080, 0xB041,
-//0x5000, 0x90C1, 0x9181, 0x5140, 0x9301, 0x53C0, 0x5280, 0x9241, 0x9601, 0x56C0, 0x5780, 0x9741, 0x5500, 0x95C1, 0x9481, 0x5440,
-//0x9C01, 0x5CC0, 0x5D80, 0x9D41, 0x5F00, 0x9FC1, 0x9E81, 0x5E40, 0x5A00, 0x9AC1, 0x9B81, 0x5B40, 0x9901, 0x59C0, 0x5880, 0x9841,
-//0x8801, 0x48C0, 0x4980, 0x8941, 0x4B00, 0x8BC1, 0x8A81, 0x4A40, 0x4E00, 0x8EC1, 0x8F81, 0x4F40, 0x8D01, 0x4DC0, 0x4C80, 0x8C41,
-//0x4400, 0x84C1, 0x8581, 0x4540, 0x8701, 0x47C0, 0x4680, 0x8641, 0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040,
-//};
+/*************************
+ * Name:    CRC-16/MODBUS x16+x15+x2+1
+ * Poly:    0x8005
+ * Init:    0xFFFF
+ * Refin:   True
+ * Refout:  True
+ * Xorout:  0x0000
+ * Note:
+*************************/
+static quint16 crc16Modbus_table[256] = {
+0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241, 0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
+0xCC01, 0x0CC0, 0x0D80, 0xCD41, 0x0F00, 0xCFC1, 0xCE81, 0x0E40, 0x0A00, 0xCAC1, 0xCB81, 0x0B40, 0xC901, 0x09C0, 0x0880, 0xC841,
+0xD801, 0x18C0, 0x1980, 0xD941, 0x1B00, 0xDBC1, 0xDA81, 0x1A40, 0x1E00, 0xDEC1, 0xDF81, 0x1F40, 0xDD01, 0x1DC0, 0x1C80, 0xDC41,
+0x1400, 0xD4C1, 0xD581, 0x1540, 0xD701, 0x17C0, 0x1680, 0xD641, 0xD201, 0x12C0, 0x1380, 0xD341, 0x1100, 0xD1C1, 0xD081, 0x1040,
+0xF001, 0x30C0, 0x3180, 0xF141, 0x3300, 0xF3C1, 0xF281, 0x3240, 0x3600, 0xF6C1, 0xF781, 0x3740, 0xF501, 0x35C0, 0x3480, 0xF441,
+0x3C00, 0xFCC1, 0xFD81, 0x3D40, 0xFF01, 0x3FC0, 0x3E80, 0xFE41, 0xFA01, 0x3AC0, 0x3B80, 0xFB41, 0x3900, 0xF9C1, 0xF881, 0x3840,
+0x2800, 0xE8C1, 0xE981, 0x2940, 0xEB01, 0x2BC0, 0x2A80, 0xEA41, 0xEE01, 0x2EC0, 0x2F80, 0xEF41, 0x2D00, 0xEDC1, 0xEC81, 0x2C40,
+0xE401, 0x24C0, 0x2580, 0xE541, 0x2700, 0xE7C1, 0xE681, 0x2640, 0x2200, 0xE2C1, 0xE381, 0x2340, 0xE101, 0x21C0, 0x2080, 0xE041,
+0xA001, 0x60C0, 0x6180, 0xA141, 0x6300, 0xA3C1, 0xA281, 0x6240, 0x6600, 0xA6C1, 0xA781, 0x6740, 0xA501, 0x65C0, 0x6480, 0xA441,
+0x6C00, 0xACC1, 0xAD81, 0x6D40, 0xAF01, 0x6FC0, 0x6E80, 0xAE41, 0xAA01, 0x6AC0, 0x6B80, 0xAB41, 0x6900, 0xA9C1, 0xA881, 0x6840,
+0x7800, 0xB8C1, 0xB981, 0x7940, 0xBB01, 0x7BC0, 0x7A80, 0xBA41, 0xBE01, 0x7EC0, 0x7F80, 0xBF41, 0x7D00, 0xBDC1, 0xBC81, 0x7C40,
+0xB401, 0x74C0, 0x7580, 0xB541, 0x7700, 0xB7C1, 0xB681, 0x7640, 0x7200, 0xB2C1, 0xB381, 0x7340, 0xB101, 0x71C0, 0x7080, 0xB041,
+0x5000, 0x90C1, 0x9181, 0x5140, 0x9301, 0x53C0, 0x5280, 0x9241, 0x9601, 0x56C0, 0x5780, 0x9741, 0x5500, 0x95C1, 0x9481, 0x5440,
+0x9C01, 0x5CC0, 0x5D80, 0x9D41, 0x5F00, 0x9FC1, 0x9E81, 0x5E40, 0x5A00, 0x9AC1, 0x9B81, 0x5B40, 0x9901, 0x59C0, 0x5880, 0x9841,
+0x8801, 0x48C0, 0x4980, 0x8941, 0x4B00, 0x8BC1, 0x8A81, 0x4A40, 0x4E00, 0x8EC1, 0x8F81, 0x4F40, 0x8D01, 0x4DC0, 0x4C80, 0x8C41,
+0x4400, 0x84C1, 0x8581, 0x4540, 0x8701, 0x47C0, 0x4680, 0x8641, 0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040,
+};
 
-//quint16 ModbusSlaver::crc16_modbus_calc(quint8 *data, quint32 length)
-//{
-//    uint16_t tmp = 0;
-//    uint16_t crc = 0xFFFF;                // Initial value
-//    while(length--)
-//    {
-//        tmp =  (0x00FF & crc) ^ (*data++);    // crc ^= *data; data++;
-//        crc = (crc >> 8) ^ crc16Modbus_table[tmp&0xFF];
-//    }
-//    return crc; // crc
-//}
+quint16 ModbusSlaver::crc16_modbus_calc(quint8 *data, quint32 length)
+{
+    uint16_t tmp = 0;
+    uint16_t crc = 0xFFFF;                // Initial value
+    while(length--)
+    {
+        tmp =  (0x00FF & crc) ^ (*data++);    // crc ^= *data; data++;
+        crc = (crc >> 8) ^ crc16Modbus_table[tmp&0xFF];
+    }
+    return crc; // crc
+}
 
-///**
-// * @brief ModbusTool::verifyLRC  LRC校验码
-// * @param data     数据缓存
-// * @param length   缓存长度
-// * @return  lrc    LRC校验码
-// */
-//quint8 ModbusSlaver::verifyLRC(quint8 *data, quint32 length)
-//{
-//    if(length == 0) return 0;
-//    quint8 lrc = 0;
-//    while(length--){
-//        lrc += *data++;
-//    }
-//    lrc = (~lrc) + 1;
-//    return lrc;
-//}
-///**
-// * @brief ModbusTool::closeEvent 重写窗口关闭事件，保存数据
-// * @param e
-// */
-//void ModbusSlaver::closeEvent(QCloseEvent *e)
-//{
-//    e = e;
-//    QSettings settings("ModbusMaster.ini", QSettings::IniFormat);
-//    settings.setIniCodec("GBK");
-//    settings.clear();
+/**
+ * @brief ModbusTool::verifyLRC  LRC校验码
+ * @param data     数据缓存
+ * @param length   缓存长度
+ * @return  lrc    LRC校验码
+ */
+quint8 ModbusSlaver::verifyLRC(quint8 *data, quint32 length)
+{
+    if(length == 0) return 0;
+    quint8 lrc = 0;
+    while(length--){
+        lrc += *data++;
+    }
+    lrc = (~lrc) + 1;
+    return lrc;
+}
 
-//    settings.beginGroup("GroupCount");
-////    settings.setValue("lastCount", Count);
-//    settings.endGroup();
-//}
-///**
-// * @brief ModbusTool::getInitTxt 读取数据
-// */
-//void ModbusSlaver::getInitTxt()
-//{
-//    QSettings settings("ModbusSlaver.ini", QSettings::IniFormat);
-//    settings.setIniCodec("GBK");
-
-//    settings.beginGroup("GroupCount");
-////    this->lastCount = settings.value("lastCount").toInt();//  读取上一次的数量
-//    settings.endGroup();
-//}
+/*-------------------------------- 数据保存与读取 -----------------------------------------*/
 
 /**
  * @brief ModbusSlaver::on_btnSave_clicked 保存Coil和Reg表格
  */
-void ModbusSlaver::on_btnSave_clicked()
+void ModbusSlaver::on_btnSave_clicked(bool getDefault)
 {
-    QString filePath = QFileDialog::getSaveFileName(this,"保存",qApp->applicationDirPath(),"*.ini");
-    QSettings settings(filePath, QSettings::IniFormat);
+    QSettings *settings;
+    if(getDefault){
+        settings = new QSettings("default.ini", QSettings::IniFormat);
+    }else{
+        QString filePath = QFileDialog::getSaveFileName(this,"保存",qApp->applicationDirPath(),"*.ini");
+        settings = new QSettings(filePath, QSettings::IniFormat);
+    }
 
-    settings.setIniCodec("GBK"); // 设置编码器,支持中文读写
+    settings->setIniCodec("GBK"); // 设置编码器,支持中文读写
 
     quint32 coilNums = ui->tblCoil->rowCount();
-    settings.beginGroup("coilTable");
-    settings.setValue( "StartAddr",  ui->tblCoil->verticalHeaderItem(0)->text() ); // 起始地址
-    settings.setValue( "HideAlias",  ui->ckbCoilHideAlias->checkState() ); // 隐藏别名
-    settings.setValue( "HideAddr",   ui->ckbCoilHideAddr->checkState() ); // 隐藏别名
+    settings->beginGroup("coilTable");
+    settings->setValue( "StartAddr",  ui->tblCoil->verticalHeaderItem(0)->text() ); // 起始地址
+    settings->setValue( "HideAlias",  ui->ckbCoilHideAlias->checkState() ); // 隐藏别名
+    settings->setValue( "HideAddr",   ui->ckbCoilHideAddr->checkState() ); // 隐藏别名
 
-    settings.beginWriteArray("Coil");
+    /* 以数组格式存储表格项 */
+    settings->beginWriteArray("Coil");
 
     for(quint32 i=0; i<coilNums; i++){
-        settings.setArrayIndex(i);
+        settings->setArrayIndex(i);
 
         if(ui->tblCoil->item(i,0) == NULL ){
-            settings.setValue( "Alias",  "NULL" ); // 记录别名
+            settings->setValue( "Alias",  "NULL" ); // 记录别名
         }else{
             if(ui->tblCoil->item(i,0)->text() != NULL)
-                settings.setValue( "Alias",  ui->tblCoil->item(i,0)->text() ); // 记录别名
-            else settings.setValue( "Alias",  "NULL" ); // 记录别名
+                settings->setValue( "Alias",  ui->tblCoil->item(i,0)->text() ); // 记录别名
+            else settings->setValue( "Alias",  "NULL" ); // 记录别名
         }
-        settings.setValue( "Checked",  ui->tblCoil->item(i,1)->checkState() ); // 记录coils状态
+        settings->setValue( "Checked",  ui->tblCoil->item(i,1)->checkState() ); // 记录coils状态
     }
-    settings.endArray();
-    settings.endGroup();
+    settings->endArray();
+    settings->endGroup();
 
+    /* 保存寄存器列表 */
     quint32 regNums = ui->tblReg->rowCount();
-    settings.beginGroup("regTable");
-    settings.setValue( "StartAddr",  ui->tblReg->verticalHeaderItem(0)->text() ); // 起始地址
-    settings.setValue( "HideAlias",  ui->ckbRegHideAlias->checkState() ); // 隐藏别名
-    settings.setValue( "HideAddr",   ui->ckbRegHideAddr->checkState() ); // 隐藏别名
+    settings->beginGroup("regTable");
+    settings->setValue( "StartAddr",  ui->tblReg->verticalHeaderItem(0)->text() ); // 起始地址
+    settings->setValue( "HideAlias",  ui->ckbRegHideAlias->checkState() ); // 隐藏别名
+    settings->setValue( "HideAddr",   ui->ckbRegHideAddr->checkState() ); // 隐藏别名
 
-    settings.beginWriteArray("Register");
+    settings->beginWriteArray("Register");
 
     for(quint32 i=0; i<regNums; i++){
-        settings.setArrayIndex(i);
+        settings->setArrayIndex(i);
 
         if(ui->tblReg->item(i,0) == NULL ){
-            settings.setValue( "Alias",  "NULL" ); // 记录别名
+            settings->setValue( "Alias",  "NULL" ); // 记录别名
         }else{
             if(ui->tblReg->item(i,0)->text() != NULL)
-                settings.setValue( "Alias",  ui->tblReg->item(i,0)->text() ); // 记录别名
-            else settings.setValue( "Alias",  "NULL" ); // 记录别名
+                settings->setValue( "Alias",  ui->tblReg->item(i,0)->text() ); // 记录别名
+            else settings->setValue( "Alias",  "NULL" ); // 记录别名
         }
-        settings.setValue( "Value",  ui->tblReg->item(i,1)->text() ); // 记录Regs状态
+        settings->setValue( "Value",  ui->tblReg->item(i,1)->text() ); // 记录Regs状态
     }
-    settings.endArray();
-    settings.endGroup();
+    settings->endArray();
+    settings->endGroup();
 }
 /**
  * @brief ModbusSlaver::on_btnLoad_clicked 加载数据
  */
-void ModbusSlaver::on_btnLoad_clicked()
+void ModbusSlaver::on_btnLoad_clicked(bool getDefault)
 {
-    QString filePath = QFileDialog::getOpenFileName(this,"加载",qApp->applicationDirPath(),"*.ini");
-    QSettings settings(filePath, QSettings::IniFormat);
+    QSettings *settings;
+    if(getDefault){
+        settings = new QSettings("default.ini", QSettings::IniFormat);
 
-    settings.setIniCodec("GBK"); // 设置编码器,支持中文读写
+    }else{
+        QString filePath = QFileDialog::getOpenFileName(this,"加载",qApp->applicationDirPath(),"*.ini");
+        settings = new QSettings(filePath, QSettings::IniFormat);
+    }
+    settings->setIniCodec("GBK"); // 设置编码器,支持中文读写
 
-    settings.beginGroup("coilTable");
+    settings->beginGroup("coilTable");
 
-    quint16 startCoilAddr = settings.value("startAddr").toInt();
-    QString tmp1 = settings.value("startAddr").toString();
+    /* 起始地址 */
+//    quint16 startCoilAddr = settings->value("startAddr").toInt();
+    QString tmp1 = settings->value("startAddr").toString();
     ui->txtCoilStartAddr->setText( tmp1 );
-    this->setCoilStartAddr(startCoilAddr);
+    this->setCoilStartAddr( tmp1.toInt(nullptr, 16) );
 
-    quint32 coilNums = settings.beginReadArray("Coil");
+    /* 线圈数量 */
+    quint32 coilNums = settings->beginReadArray("Coil");
     ui->txtCoilNum->setText( QString::number(coilNums) );
     ui->txtCoilNum->editingFinished();
 
 
-    Qt::CheckState hideCoilAddr = (Qt::CheckState)settings.value( "HideAlias" ).toInt();
-    Qt::CheckState hideCoilAlias = (Qt::CheckState)settings.value( "HideAlias" ).toInt();
+    /* 隐藏行,列 */
+    Qt::CheckState hideCoilAddr = (Qt::CheckState)settings->value( "HideAlias" ).toInt();
+    Qt::CheckState hideCoilAlias = (Qt::CheckState)settings->value( "HideAlias" ).toInt();
     ui->ckbCoilHideAddr->setChecked( hideCoilAddr );
     ui->ckbCoilHideAlias->setChecked( hideCoilAlias );
 
+    /* 读取别名的线圈状态 */
     for(quint32 i=0; i<coilNums; i++ ){
-        settings.setArrayIndex(i);
-        QString alias = settings.value("Alias").toString();
+        settings->setArrayIndex(i);
+        QString alias = settings->value("Alias").toString();
         if( !alias.operator ==("NULL") ){
             if( ui->tblCoil->item(i, 0) == NULL ){
                 QTableWidgetItem *item = new QTableWidgetItem();
@@ -590,33 +596,32 @@ void ModbusSlaver::on_btnLoad_clicked()
             }
             ui->tblCoil->item(i, 0)->setText(alias);
         }
-        Qt::CheckState checked = (Qt::CheckState)settings.value( "Checked" ).toInt();
+        Qt::CheckState checked = (Qt::CheckState)settings->value( "Checked" ).toInt();
         ui->tblCoil->item(i,1)->setCheckState(checked);
     }
 
-    settings.endArray();
-    settings.endGroup();
+    settings->endArray();
+    settings->endGroup();
 
-    settings.beginGroup("regTable");
+    /* 寄存器表格 */
+    settings->beginGroup("regTable");
 
-    quint16 startRegAddr = settings.value("startAddr").toInt();
-    QString tmp2 = settings.value("startAddr").toString();
+    QString tmp2 = settings->value("startAddr").toString();
     ui->txtRegStartAddr->setText( tmp2 );
-    this->setRegStartAddr(startRegAddr);
+    this->setRegStartAddr(tmp2.toInt(nullptr, 16));
 
-    quint32 regNums = settings.beginReadArray("Register");
+    quint32 regNums = settings->beginReadArray("Register");
     ui->txtRegNum->setText( QString::number(regNums) );
     ui->txtRegNum->editingFinished();
 
-
-    Qt::CheckState hideRegAddr = (Qt::CheckState)settings.value( "HideAlias" ).toInt();
-    Qt::CheckState hideRegAlias = (Qt::CheckState)settings.value( "HideAlias" ).toInt();
+    Qt::CheckState hideRegAddr = (Qt::CheckState)settings->value( "HideAlias" ).toInt();
+    Qt::CheckState hideRegAlias = (Qt::CheckState)settings->value( "HideAlias" ).toInt();
     ui->ckbRegHideAddr->setChecked( hideRegAddr );
     ui->ckbRegHideAlias->setChecked( hideRegAlias );
 
     for(quint32 i=0; i<regNums; i++ ){
-        settings.setArrayIndex(i);
-        QString alias = settings.value("Alias").toString();
+        settings->setArrayIndex(i);
+        QString alias = settings->value("Alias").toString();
         if( !alias.operator ==("NULL") ){
             if( ui->tblReg->item(i, 0) == NULL ){
                 QTableWidgetItem *item = new QTableWidgetItem();
@@ -624,10 +629,19 @@ void ModbusSlaver::on_btnLoad_clicked()
             }
             ui->tblReg->item(i, 0)->setText(alias);
         }
-        QString value = settings.value( "Value" ).toString();
+        QString value = settings->value( "Value" ).toString();
         ui->tblReg->item(i,1)->setText(value);
     }
 
-    settings.endArray();
-    settings.endGroup();
+    settings->endArray();
+    settings->endGroup();
+}
+/**
+ * @brief ModbusTool::closeEvent 重写窗口关闭事件，保存数据
+ * @param e
+ */
+void ModbusSlaver::closeEvent(QCloseEvent *e)
+{
+    e = e;
+    this->on_btnSave_clicked(true);
 }

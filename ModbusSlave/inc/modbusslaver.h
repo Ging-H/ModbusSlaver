@@ -78,7 +78,9 @@ public:
     quint8 verifyLRC(quint8 *data, quint32 length);
     void sendFrame(QByteArray txbuf);
     void insertLogAtTime(QString msg);
-//    void getInitTxt();
+    void sendFrame(QByteArray txbuf);
+
+    void tableInit();
 
     void setCoilStartAddr(quint16 startAddr);
     void setRegStartAddr(quint16 startAddr);
@@ -92,9 +94,9 @@ signals:
 
 
 public slots :
-//    void slots_RxCallback();
+    void slots_RxCallback();
 
-//    void slots_errorHandler(QSerialPort::SerialPortError error);
+    void slots_errorHandler(QSerialPort::SerialPortError error);
 
 
 
@@ -123,12 +125,12 @@ private slots:
 
     void on_tblCoil_cellChanged(int row, int column);
 
-    void on_btnSave_clicked();
+    void on_btnSave_clicked(bool getDefault = false);
 
-    void on_btnLoad_clicked();
+    void on_btnLoad_clicked(bool getDefault = false);
 
 protected :
-//    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::ModbusSlaver *ui;
