@@ -1,10 +1,10 @@
-#include "modbusslaver.h"
+#include "modbustool.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    ModbusSlaver w;
+    ModbusTool w;
     w.show();
 
     return a.exec();

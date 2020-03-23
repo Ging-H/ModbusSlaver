@@ -561,7 +561,7 @@ public:
 };
 
 namespace Ui {
-    class ModbusSlaver: public Ui_ModbusTool {};
+    class ModbusTool: public Ui_ModbusTool {};
 } // namespace Ui
 
 QT_END_NAMESPACE
