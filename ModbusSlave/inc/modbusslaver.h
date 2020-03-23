@@ -78,7 +78,6 @@ public:
     quint8 verifyLRC(quint8 *data, quint32 length);
     void sendFrame(QByteArray txbuf);
     void insertLogAtTime(QString msg);
-    void sendFrame(QByteArray txbuf);
 
     void tableInit();
 
@@ -128,6 +127,7 @@ private slots:
     void on_btnSave_clicked(bool getDefault = false);
 
     void on_btnLoad_clicked(bool getDefault = false);
+
 
 protected :
     void closeEvent(QCloseEvent *event);

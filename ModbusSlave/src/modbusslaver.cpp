@@ -336,37 +336,7 @@ void ModbusSlaver::setRegInit()
     }
 }
 
-///**
-// * @brief ModbusTool::sendFrame 发送数据帧
-// * @param txbuf 待发送的数据（不含校验码）
-// */
-//void ModbusSlaver::sendFrame(QByteArray txbuf)
-//{
-//    /*-------- 设置文本颜色 ----------*/
-////    ui->txtMessage->setTextColor(QColor(255, 128, 128));
 
-//    /* RTU模式 */
-//    if( ui->rdbRTU->isChecked() ){
-//        if( ui->ckbInsertCRC->isChecked() ){
-//            quint16 CRC = crc16_modbus_calc((quint8*)txbuf.data(), txbuf.size());
-//            txbuf.append(CRC);
-//            txbuf.append(CRC>>8);
-//        }
-//        emit signal_writtenData(txbuf);
-//        this->insertLogAtTime("Tx: " + txbuf.toHex(' ').toUpper());
-
-//    }else{/* ASCII模式 */
-//        if( ui->ckbInsertCRC->isChecked() ){
-//            quint8 LRC = verifyLRC((quint8*)txbuf.data(), txbuf.size());
-//            txbuf.append(LRC);
-//        }
-//        QByteArray tmp = txbuf.toHex().toUpper().prepend(":");
-//        tmp.append("\r\n"); // 0x0D 0x0A
-//        emit signal_writtenData(tmp);
-//        tmp.replace("\r\n","\\r\\n");
-//        this->insertLogAtTime("Tx: " + tmp);
-//    }
-//}
 
 ///*-------------------------  接收数据帧处理 -------------------------*/
 
@@ -503,6 +473,12 @@ void ModbusSlaver::on_btnSave_clicked(bool getDefault)
     settings->setIniCodec("GBK"); // 设置编码器,支持中文读写
 
     quint32 coilNums = ui->tblCoil->rowCount();
+    settings->beginGroup("GlobalConfig");
+    settings->setValue( "SlaverAddr",  ui->txtAddr->text() );   // 起始地址
+    settings->setValue( "RTUMode",  ui->rdbRTU->isChecked() ); // 通信模式
+    settings->setValue( "ASCIIMode",  ui->rdbASCII->isChecked() ); // 通信模式
+    settings->endGroup();
+
     settings->beginGroup("coilTable");
     settings->setValue( "StartAddr",  ui->tblCoil->verticalHeaderItem(0)->text() ); // 起始地址
     settings->setValue( "HideAlias",  ui->ckbCoilHideAlias->checkState() ); // 隐藏别名
@@ -564,6 +540,12 @@ void ModbusSlaver::on_btnLoad_clicked(bool getDefault)
         settings = new QSettings(filePath, QSettings::IniFormat);
     }
     settings->setIniCodec("GBK"); // 设置编码器,支持中文读写
+
+    settings->beginGroup("GlobalConfig");
+    ui->txtAddr->setText( settings->value( "SlaverAddr").toString());   // 起始地址
+    ui->rdbRTU->setChecked( settings->value( "RTUMode" ).toBool());     // 通信模式
+    ui->rdbASCII ->setChecked( settings->value( "ASCIIMode" ).toBool()); // 通信模式
+    settings->endGroup();
 
     settings->beginGroup("coilTable");
 
@@ -645,3 +627,4 @@ void ModbusSlaver::closeEvent(QCloseEvent *e)
     e = e;
     this->on_btnSave_clicked(true);
 }
+
