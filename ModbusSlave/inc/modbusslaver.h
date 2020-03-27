@@ -68,6 +68,7 @@ public:
 
     QByteArray rxDataBuf;
     int   Count = 0;
+    QTime *rxTime;
 
     void initComboBox_Config();
     void configPort();
@@ -79,6 +80,7 @@ public:
     void sendFrame(QByteArray txbuf);
     void insertLogAtTime(QString msg);
 
+
     void tableInit();
 
     void setCoilStartAddr(quint16 startAddr);
@@ -88,14 +90,53 @@ public:
     void setRegInit();
 
 
+    bool handleRTUProtocal();
+    bool handleASCIIProtocal();
+    bool checkVerify( QByteArray &rxbuf,quint16 &verify, ProtocalMode mode);
+    void handleReadRegister(ProtocalMode mode);
+    void handleWriteRegister( ProtocalMode mode, bool multiReg);
+
+    void handleReadCoil(ProtocalMode mode);
+    void handleWriteCoil(  ProtocalMode mode, bool multiCoil );
+//    void handleWriteRegister( ProtocalMode mode, bool multiReg);
+
+
+    void exceptionHandle(ExceptionCode exception );
+
 signals:
     void signal_writtenData(QByteArray txBuf);
+
+    void signal_cmd01HProtocal(ProtocalMode);
+
+    void signal_cmd03HProtocal(ProtocalMode);
+
+    void signal_cmd05HProtocal(ProtocalMode);
+
+    void signal_cmd06HProtocal(ProtocalMode);
+
+    void signal_cmd0FHProtocal(ProtocalMode);
+
+    void signal_cmd10HProtocal(ProtocalMode);
 
 
 public slots :
     void slots_RxCallback();
 
     void slots_errorHandler(QSerialPort::SerialPortError error);
+
+    void  slots_rxTimeout();
+
+    void slots_cmd01HProtocal(ProtocalMode);
+
+    void slots_cmd03HProtocal(ProtocalMode);
+
+    void slots_cmd05HProtocal(ProtocalMode);
+
+    void slots_cmd06HProtocal(ProtocalMode);
+
+    void slots_cmd0FHProtocal(ProtocalMode);
+
+    void slots_cmd10HProtocal(ProtocalMode);
 
 
 
@@ -128,6 +169,10 @@ private slots:
 
     void on_btnLoad_clicked(bool getDefault = false);
 
+
+    void on_actionModbusPro_triggered();
+
+    void on_toolButton_clicked();
 
 protected :
     void closeEvent(QCloseEvent *event);
