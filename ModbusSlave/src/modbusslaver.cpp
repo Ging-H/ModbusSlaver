@@ -24,6 +24,8 @@ ModbusSlaver::ModbusSlaver(QWidget *parent) :
     connect(this, SIGNAL(signal_cmd0FHProtocal(ProtocalMode)), this, SLOT(slots_cmd0FHProtocal(ProtocalMode)) );
     connect(this, SIGNAL(signal_cmd10HProtocal(ProtocalMode)), this, SLOT(slots_cmd10HProtocal(ProtocalMode)) );
 
+    connect(this,SIGNAL(signal_exceptionHandle(ModbusCMD,ExceptionCode)),this,SLOT(slots_exceptionHandle(ModbusCMD,ExceptionCode)));
+
     this->tableInit();
 }
 
@@ -386,7 +388,7 @@ void  ModbusSlaver::slots_rxTimeout()
 bool ModbusSlaver::handleRTUProtocal()
 {
     /* 根据功能码判断是否接收完整的数据帧 */
-    if(rxDataBuf.size()>=5){                // 至少要有一定数量的数据才能判断是否接收完整
+    if(rxDataBuf.size()>=2){                // 至少要有一定数量的数据才能判断是否接收完整
         qint8 slaverAddr = ui->txtAddr->text().toInt();
         if( slaverAddr == rxDataBuf.at(0) ){ // 从机地址不对就不需要理会这帧数据
             switch( rxDataBuf.at(1) ){     // 指令码
@@ -443,6 +445,7 @@ bool ModbusSlaver::handleRTUProtocal()
 
             default :
                 this->insertLogAtTime("Rx: " + rxDataBuf.toHex(' ').toUpper());
+                emit signal_exceptionHandle((ModbusCMD)rxDataBuf.at(1), Exception01);
                 return true;
                 break;
             }
@@ -452,12 +455,21 @@ bool ModbusSlaver::handleRTUProtocal()
     }
     return false;
 }
-
+/**
+ * @brief ModbusSlaver::handleASCIIProtocal 判断ASCII数据帧是否完整
+ * @return
+ */
 bool ModbusSlaver::handleASCIIProtocal()
 {
     return true;
-
 }
+/**
+ * @brief ModbusSlaver::checkVerify 检查校验码
+ * @param rxbuf    待校验数据
+ * @param verify   校验码
+ * @param mode     RTU or ASCII
+ * @return
+ */
 bool ModbusSlaver::checkVerify( QByteArray &rxbuf,quint16 &verify, ProtocalMode mode)
 {
     if(mode == RTU){
@@ -486,54 +498,12 @@ bool ModbusSlaver::checkVerify( QByteArray &rxbuf,quint16 &verify, ProtocalMode 
     }
     return false;
 }
+
+
 /**
- * @brief ModbusSlaver::slots_cmd03HProtocal 接收到03H指令，处理数据帧
+ * @brief ModbusSlaver::slots_cmd01HProtocal 01H指令码
+ * @param mode
  */
-void ModbusSlaver::slots_cmd03HProtocal(ProtocalMode mode)
-{
-    quint16 verifyLength = 0; //校验码长度
-    QByteArray rxbuf ;
-    if(mode == RTU){
-        rxbuf = rxDataBuf.left(8);
-        if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
-            ui->txtMessage->setTextColor(QColor(214, 149, 69));// 橙色
-            ui->txtMessage->append("CRC校验错误");
-            ui->txtMessage->append("-----------------------------------------------------");
-            return ;
-        }
-        verifyLength = 4;
-    }else{
-        verifyLength = 2;
-//        rxbuf = rxDataBuf;
-//        QByteArray tmp;
-//        rxBuf.chop(4);  // 省略回车换行符号
-//        tmp.append(rxBuf.data()+1, rxBuf.size()-1  ); // 删掉':'
-//        rxBuf = QByteArray::fromHex(tmp);// 转换成十六进制的字节数据,跟RTU一样的处理方法
-//        quint8 lrc = this->verifyLRC( (quint8 *)rxBuf.data(), rxBuf.size() );
-//        if(lrc != 0){ // 校验码错误
-//            ui->txtMessage->append("LRC校验错误");
-//            ui->txtMessage->append("-----------------------------------------------------");
-//            return;
-//        }
-    }
-    rxFrame.slaveAddr = rxbuf.at(0);
-    rxFrame.cmd = rxbuf.at(1); // 03H or 04H
-    rxFrame.regAddr = (quint8)(rxbuf.at(2)<<8) + (quint8)rxbuf.at(3);
-    rxFrame.regNum  = (quint8)(rxbuf.at(2)<<4) + (quint8)rxbuf.at(5);
-    rxFrame.byteNum = rxFrame.regNum * 2;
-    /* read register */
-    this->handleReadRegister(mode);
-    ui->txtMessage->setTextColor(QColor(69, 198, 214));// 蓝色
-
-    ui->txtMessage->append("从地址: " + QString("%1H").arg(rxFrame.slaveAddr,2,16,QLatin1Char('0')).toUpper());
-    ui->txtMessage->append("功能码: " + QString("%1H").arg(rxFrame.cmd,2,16,QLatin1Char('0')).toUpper());
-    ui->txtMessage->append("寄存器首地址: " + QString("%1H").arg(rxFrame.regAddr,4,16,QLatin1Char('0')).toUpper());
-    ui->txtMessage->append("寄存器数量: " + QString("%1").arg(rxFrame.regNum,  2, 10));
-    ui->txtMessage->append("校验码: " + QString("%1H").arg(rxFrame.verify, verifyLength, 16, QLatin1Char('0')).toUpper());
-    ui->txtMessage->append("-----------------------------------------------------");
-}
-
-
 void ModbusSlaver::slots_cmd01HProtocal(ProtocalMode mode)
 {
     quint16 verifyLength = 0; //校验码长度
@@ -570,7 +540,45 @@ void ModbusSlaver::slots_cmd01HProtocal(ProtocalMode mode)
     ui->txtMessage->append("校验码: " + QString("%1H").arg(rxFrame.verify, verifyLength, 16, QLatin1Char('0')).toUpper());
     ui->txtMessage->append("-----------------------------------------------------");
 }
+/**
+ * @brief ModbusSlaver::slots_cmd03HProtocal 接收到03H指令，处理数据帧
+ */
+void ModbusSlaver::slots_cmd03HProtocal(ProtocalMode mode)
+{
+    quint16 verifyLength = 0; //校验码长度
+    QByteArray rxbuf ;
+    if(mode == RTU){
+        rxbuf = rxDataBuf.left(8);
+        if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
+            ui->txtMessage->setTextColor(QColor(214, 149, 69));// 橙色
+            ui->txtMessage->append("CRC校验错误");
+            ui->txtMessage->append("-----------------------------------------------------");
+            return ;
+        }
+        verifyLength = 4;
+    }else{
+        verifyLength = 2;
+    }
+    rxFrame.slaveAddr = rxbuf.at(0);
+    rxFrame.cmd = rxbuf.at(1); // 03H or 04H
+    rxFrame.regAddr = (quint8)(rxbuf.at(2)<<8) + (quint8)rxbuf.at(3);
+    rxFrame.regNum  = (quint8)(rxbuf.at(2)<<4) + (quint8)rxbuf.at(5);
+    rxFrame.byteNum = rxFrame.regNum * 2;
+    /* read register */
+    this->handleReadRegister(mode);
+    ui->txtMessage->setTextColor(QColor(69, 198, 214));// 蓝色
 
+    ui->txtMessage->append("从地址: " + QString("%1H").arg(rxFrame.slaveAddr,2,16,QLatin1Char('0')).toUpper());
+    ui->txtMessage->append("功能码: " + QString("%1H").arg(rxFrame.cmd,2,16,QLatin1Char('0')).toUpper());
+    ui->txtMessage->append("寄存器首地址: " + QString("%1H").arg(rxFrame.regAddr,4,16,QLatin1Char('0')).toUpper());
+    ui->txtMessage->append("寄存器数量: " + QString("%1").arg(rxFrame.regNum,  2, 10));
+    ui->txtMessage->append("校验码: " + QString("%1H").arg(rxFrame.verify, verifyLength, 16, QLatin1Char('0')).toUpper());
+    ui->txtMessage->append("-----------------------------------------------------");
+}
+/**
+ * @brief ModbusSlaver::slots_cmd05HProtocal 05H指令码
+ * @param mode
+ */
 void ModbusSlaver::slots_cmd05HProtocal(ProtocalMode mode )
 {
     QByteArray rxbuf ;
@@ -614,6 +622,10 @@ void ModbusSlaver::slots_cmd05HProtocal(ProtocalMode mode )
     ui->txtMessage->append("校验码: " + QString("%1H").arg(rxFrame.verify, verifyLength, 16, QLatin1Char('0')).toUpper());
     ui->txtMessage->append("-----------------------------------------------------");
 }
+/**
+ * @brief ModbusSlaver::slots_cmd06HProtocal 06H指令码
+ * @param mode
+ */
 void ModbusSlaver::slots_cmd06HProtocal(ProtocalMode mode)
 {
     QByteArray rxbuf ;
@@ -648,6 +660,10 @@ void ModbusSlaver::slots_cmd06HProtocal(ProtocalMode mode)
     ui->txtMessage->append("校验码: " + QString("%1H").arg(rxFrame.verify, verifyLength, 16, QLatin1Char('0')).toUpper());
     ui->txtMessage->append("-----------------------------------------------------");
 }
+/**
+ * @brief ModbusSlaver::slots_cmd0FHProtocal 0FH指令码
+ * @param mode
+ */
 void ModbusSlaver::slots_cmd0FHProtocal(ProtocalMode mode )
 {
     QByteArray rxbuf ;
@@ -686,7 +702,10 @@ void ModbusSlaver::slots_cmd0FHProtocal(ProtocalMode mode )
     ui->txtMessage->append("校验码: " + QString("%1H").arg(rxFrame.verify, verifyLength, 16, QLatin1Char('0')).toUpper());
     ui->txtMessage->append("-----------------------------------------------------");
 }
-
+/**
+ * @brief ModbusSlaver::slots_cmd10HProtocal 10H指令码
+ * @param mode
+ */
 void ModbusSlaver::slots_cmd10HProtocal(ProtocalMode mode )
 {
     QByteArray rxbuf ;
@@ -704,18 +723,6 @@ void ModbusSlaver::slots_cmd10HProtocal(ProtocalMode mode )
         verifyLength = 4;
     }else{
         verifyLength = 2;
-
-//        rxbuf = rxDataBuf;
-//        QByteArray tmp;
-//        rxBuf.chop(4);  // 省略回车换行符号
-//        tmp.append(rxBuf.data()+1, rxBuf.size()-1  ); // 删掉':'
-//        rxBuf = QByteArray::fromHex(tmp);// 转换成十六进制的字节数据,跟RTU一样的处理方法
-//        quint8 lrc = this->verifyLRC( (quint8 *)rxBuf.data(), rxBuf.size() );
-//        if(lrc != 0){ // 校验码错误
-//            ui->txtMessage->append("LRC校验错误");
-//            ui->txtMessage->append("-----------------------------------------------------");
-//            return;
-//        }
     }
 
     rxFrame.slaveAddr = rxbuf.at(0);
@@ -744,6 +751,10 @@ void ModbusSlaver::slots_cmd10HProtocal(ProtocalMode mode )
     ui->txtMessage->append("-----------------------------------------------------");
 
 }
+/**
+ * @brief ModbusSlaver::handleReadCoil 读取线圈值
+ * @param mode
+ */
 void ModbusSlaver::handleReadCoil(ProtocalMode mode)
 {
     quint16 startAddr = ui->tblCoil->verticalHeaderItem(0)->text().toInt(nullptr,16);
@@ -791,15 +802,13 @@ void ModbusSlaver::handleReadCoil(ProtocalMode mode)
     }
     /* 错误显示 */
     // Exception02 // 地址错误,包括首地址错误,或者读取的寄存器数量超过了表格的大小
-    rxFrame.cmd |= 0x80;
-    QByteArray txbuf ;
-    txbuf.append( rxFrame.slaveAddr );
-    txbuf.append( rxFrame.cmd);
-    txbuf.append( Exception02 );
-    this->sendFrame( txbuf );
-    this->exceptionHandle(Exception02);
-
+    emit signal_exceptionHandle((ModbusCMD)rxFrame.cmd, Exception02);
 }
+/**
+ * @brief ModbusSlaver::handleWriteCoil 写入个线圈值
+ * @param mode       RTU or ADCII
+ * @param multiCoil  T:写入多个线圈; F:写入单个线圈
+ */
 void ModbusSlaver::handleWriteCoil(  ProtocalMode mode, bool multiCoil )
 {
     quint16 startAddr = ui->tblCoil->verticalHeaderItem(0)->text().toInt(nullptr,16);
@@ -817,15 +826,9 @@ void ModbusSlaver::handleWriteCoil(  ProtocalMode mode, bool multiCoil )
                 else if(value == 0x0000)
                     ui->tblCoil->item(row++, 1)->setCheckState(Qt::Unchecked);
                 else {
-                    /* 错误显示 */
                     // Exception03 // 数据值错误
-                    rxFrame.cmd |= 0x80;
-                    QByteArray txbuf ;
-                    txbuf.append( rxFrame.slaveAddr );
-                    txbuf.append( rxFrame.cmd);
-                    txbuf.append( Exception03 );
-                    this->sendFrame( txbuf );
-                    this->exceptionHandle(Exception03);
+                    emit signal_exceptionHandle((ModbusCMD)rxFrame.cmd, Exception03);
+
                     return;
                 }
                 /* 反馈数据 */
@@ -886,15 +889,13 @@ void ModbusSlaver::handleWriteCoil(  ProtocalMode mode, bool multiCoil )
     }
     /* 错误显示 */
     // Exception02 // 地址错误,包括首地址错误,或者读取的寄存器数量超过了表格的大小
-    rxFrame.cmd |= 0x80;
-    QByteArray txbuf ;
-    txbuf.append( rxFrame.slaveAddr );
-    txbuf.append( rxFrame.cmd);
-    txbuf.append( Exception02 );
-    this->sendFrame( txbuf );
-    this->exceptionHandle(Exception02);
-
+    emit signal_exceptionHandle((ModbusCMD)rxFrame.cmd, Exception02);
 }
+/**
+ * @brief ModbusSlaver::handleWriteRegister 写寄存器值
+ * @param mode     RTU or ASCII
+ * @param multiReg T:写入多个寄存器; F:写入单个寄存器
+ */
 void ModbusSlaver::handleWriteRegister( ProtocalMode mode, bool multiReg)
 {
     quint16 startAddr = ui->tblReg->verticalHeaderItem(0)->text().toInt(nullptr,16);
@@ -938,21 +939,27 @@ void ModbusSlaver::handleWriteRegister( ProtocalMode mode, bool multiReg)
             this->sendFrame(txbuf);
         }
     }else{
-        /* 数据反馈 */
-        txbuf.append( rxFrame.slaveAddr );
-        txbuf.append( rxFrame.cmd | 0x80 );
-        txbuf.append( Exception02 );
-        this->sendFrame( txbuf );
-        this->exceptionHandle(Exception02);
+        /* 地址异常 */
+        emit signal_exceptionHandle((ModbusCMD)rxFrame.cmd, Exception02);
+        return;
     }
 }
 
 /**
- * @brief ModbusMaster::exceptionHandle 异常显示
+ * @brief ModbusSlaver::slots_exceptionHandle 反馈异常码
+ * @param cmd
  * @param exception
  */
-void ModbusSlaver::exceptionHandle(ExceptionCode exception )
+void ModbusSlaver::slots_exceptionHandle(ModbusCMD cmd,ExceptionCode exception)
 {
+    QByteArray txbuf ;
+    quint8 slaveAddr = ui->txtAddr->text().toInt(nullptr,16);
+    txbuf.append( slaveAddr );
+    txbuf.append( cmd | 0x80 );
+    txbuf.append( exception );
+   this->sendFrame( txbuf );
+
+
     ui->txtMessage->setTextColor(QColor(214, 149, 69));// 橙色
     ui->txtMessage->append("Modbus异常响应:");
     QString str = "异常码: 0x%1";
@@ -977,8 +984,10 @@ void ModbusSlaver::exceptionHandle(ExceptionCode exception )
         break ;
     }
 }
+
 /**
- * @brief ModbusSlaver::handle03H 处理03H指令码的动作,并且反馈数据
+ * @brief ModbusSlaver::handleReadRegister  读寄存器
+ * @param mode
  */
 void ModbusSlaver::handleReadRegister(ProtocalMode mode)
 {
@@ -1313,9 +1322,9 @@ void ModbusSlaver::on_actionModbusPro_triggered()
     path += "/Modbus.pdf"; // 当前路径下的.pdf文档
     QDesktopServices::openUrl(QUrl::fromLocalFile(path));
 }
-
-
-
+/**
+ * @brief ModbusSlaver::on_toolButton_clicked 清空缓存
+ */
 void ModbusSlaver::on_toolButton_clicked()
 {
     rxDataBuf.clear();

@@ -118,6 +118,8 @@ signals:
 
     void signal_cmd10HProtocal(ProtocalMode);
 
+    void signal_exceptionHandle(ModbusCMD cmd,ExceptionCode exception);
+
 
 public slots :
     void slots_RxCallback();
@@ -138,6 +140,7 @@ public slots :
 
     void slots_cmd10HProtocal(ProtocalMode);
 
+    void slots_exceptionHandle(ModbusCMD cmd,ExceptionCode exception);
 
 
 private slots:
