@@ -101,7 +101,7 @@ public:
 //    void handleWriteRegister( ProtocalMode mode, bool multiReg);
 
 
-    void exceptionHandle(ExceptionCode exception );
+//    void exceptionHandle(ExceptionCode exception );
 
 signals:
     void signal_writtenData(QByteArray txBuf);

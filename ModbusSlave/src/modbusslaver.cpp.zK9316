@@ -225,7 +225,6 @@ void ModbusSlaver::setCoilInit()
 {
     qint32 coilsNum = ui->tblCoil->rowCount();
 
-    qDebug()<< "new Coil cell";
     for(qint32 i=0; i<coilsNum; i++ ) {
         QTableWidgetItem *item = ui->tblCoil->item(i, 1);
         if( item == NULL ){
@@ -345,6 +344,8 @@ void ModbusSlaver::setRegInit()
     }
 }
 
+
+
 //*-------------------------  接收数据帧处理 -------------------------*/
 
 /**
@@ -412,7 +413,6 @@ bool ModbusSlaver::handleRTUProtocal()
                     emit this->signal_cmd05HProtocal(RTU);
                     return true;
                 }
-                break;
             case cmd06H:
                 if( rxDataBuf.size()>=8 ){
                     this->insertLogAtTime("Rx: " + rxDataBuf.toHex(' ').toUpper());
@@ -477,13 +477,14 @@ bool ModbusSlaver::handleASCIIProtocal()
         case cmd01H:
         case cmd02H:
             emit this->signal_cmd01HProtocal(ASCII);
+            return true;
         case cmd03H:
         case cmd04H:
             emit this->signal_cmd03HProtocal(ASCII);
+            return true;
             break;
         case cmd05H:
             emit this->signal_cmd05HProtocal(ASCII);
-            break;
         case cmd06H:
             emit this->signal_cmd06HProtocal(ASCII);
             break;
@@ -495,13 +496,14 @@ bool ModbusSlaver::handleASCIIProtocal()
             break;
         default :
             emit signal_exceptionHandle((ModbusCMD)rxDataBuf.at(1), Exception01);
+            return true;
             break;
         }
-        return true;
+
         /* 删除接收数据帧 */
         rxDataBuf.remove(0,tmp.length()-2);
     }
-    return false;
+    return true;
 }
 /**
  * @brief ModbusSlaver::checkVerify 检查校验码
@@ -595,14 +597,13 @@ void ModbusSlaver::slots_cmd03HProtocal(ProtocalMode mode)
     if(mode == RTU){
         rxbuf = rxDataBuf.left(8);
         if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
+            ui->txtMessage->setTextColor(QColor(214, 149, 69));// 橙色
+            ui->txtMessage->append("CRC校验错误");
+            ui->txtMessage->append("-----------------------------------------------------");
             return ;
         }
         verifyLength = 4;
     }else{
-        rxbuf = rxDataBuf.left(7);
-        if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
-            return ;
-        }
         verifyLength = 2;
     }
     rxFrame.slaveAddr = rxbuf.at(0);
@@ -632,15 +633,15 @@ void ModbusSlaver::slots_cmd05HProtocal(ProtocalMode mode )
     if(mode == RTU){
         rxbuf = rxDataBuf.left(8);
         if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
+            ui->txtMessage->setTextColor(QColor(214, 149, 69));// 橙色
+            ui->txtMessage->append("CRC校验错误");
+            ui->txtMessage->append("-----------------------------------------------------");
             return ;
         }
         verifyLength = 4;
     }else{
-        rxbuf = rxDataBuf.left(7);
-        if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
-            return ;
-        }
         verifyLength = 2;
+        // TODO:
     }
 
     rxFrame.slaveAddr = rxbuf.at(0);
@@ -686,11 +687,8 @@ void ModbusSlaver::slots_cmd06HProtocal(ProtocalMode mode)
         }
         verifyLength = 4;
     }else{
-        rxbuf = rxDataBuf.left(7);
-        if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
-            return ;
-        }
         verifyLength = 2;
+        // TODO:
     }
 
     rxFrame.slaveAddr = rxbuf.at(0);
@@ -715,7 +713,7 @@ void ModbusSlaver::slots_cmd06HProtocal(ProtocalMode mode)
  */
 void ModbusSlaver::slots_cmd0FHProtocal(ProtocalMode mode )
 {
-    QByteArray rxbuf;
+    QByteArray rxbuf ;
     quint16 verifyLength = 0; //校验码长度
     if(mode == RTU){
         quint16 length = (quint8)rxDataBuf.at(6);
@@ -729,13 +727,8 @@ void ModbusSlaver::slots_cmd0FHProtocal(ProtocalMode mode )
         }
         verifyLength = 4;
     }else{
-        quint16 length = (quint8)rxDataBuf.at(6);
-        length += 7+1; // 7 个字节是地址\功能\寄存器地址\字节数,1个字节校验码
-        rxbuf = rxDataBuf.left(length);
-        if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
-            return ;
-        }
         verifyLength = 2;
+        // TODO:
     }
 
     rxFrame.slaveAddr = rxbuf.at(0);
@@ -776,12 +769,6 @@ void ModbusSlaver::slots_cmd10HProtocal(ProtocalMode mode )
         }
         verifyLength = 4;
     }else{
-        quint16 length = ((quint8)rxDataBuf.at(4)<<8) + (quint8)rxDataBuf.at(5);
-        length = (length*2)+2+6; // 6 个字节是地址\功能\寄存器地址,2个字节是字节数\校验码
-        rxbuf = rxDataBuf.left(length);
-        if( !this->checkVerify(rxbuf, rxFrame.verify, mode)){
-            return ;
-        }
         verifyLength = 2;
     }
 
@@ -809,6 +796,7 @@ void ModbusSlaver::slots_cmd10HProtocal(ProtocalMode mode )
     ui->txtMessage->append("写入数据值: " + tmpStr);
     ui->txtMessage->append("校验码: " + QString("%1H").arg(rxFrame.verify, verifyLength, 16, QLatin1Char('0')).toUpper());
     ui->txtMessage->append("-----------------------------------------------------");
+
 }
 /**
  * @brief ModbusSlaver::handleReadCoil 读取线圈值
@@ -839,6 +827,7 @@ void ModbusSlaver::handleReadCoil(ProtocalMode mode)
                     *data = 0;
                 }
             }
+
             /* 反馈数据 */
             QByteArray txbuf ((const char*)rxFrame.data, rxFrame.byteNum);
             txbuf.prepend( rxFrame.byteNum );
@@ -1207,9 +1196,7 @@ void ModbusSlaver::on_btnSave_clicked(bool getDefault)
         settings = new QSettings(filePath, QSettings::IniFormat);
     }
 
-
     settings->setIniCodec("GBK"); // 设置编码器,支持中文读写
-
 
     quint32 coilNums = ui->tblCoil->rowCount();
     settings->beginGroup("GlobalConfig");
@@ -1218,24 +1205,20 @@ void ModbusSlaver::on_btnSave_clicked(bool getDefault)
     settings->setValue( "ASCIIMode",  ui->rdbASCII->isChecked() ); // 通信模式
     settings->endGroup();
 
-    /* 保存线圈列表 */
     settings->beginGroup("coilTable");
     settings->setValue( "StartAddr",  ui->tblCoil->verticalHeaderItem(0)->text() ); // 起始地址
     settings->setValue( "HideAlias",  ui->ckbCoilHideAlias->checkState() ); // 隐藏别名
     settings->setValue( "HideAddr",   ui->ckbCoilHideAddr->checkState() ); // 隐藏别名
 
-//    qDebug()<<"not dead";
-
     /* 以数组格式存储表格项 */
     settings->beginWriteArray("Coil");
 
-
     for(quint32 i=0; i<coilNums; i++){
         settings->setArrayIndex(i);
-        if(ui->tblCoil->item(i,0) == NULL ){            
+
+        if(ui->tblCoil->item(i,0) == NULL ){
             settings->setValue( "Alias",  "NULL" ); // 记录别名
         }else{
-            qDebug()<<"not dead 2";
             if(ui->tblCoil->item(i,0)->text() != NULL)
                 settings->setValue( "Alias",  ui->tblCoil->item(i,0)->text() ); // 记录别名
             else settings->setValue( "Alias",  "NULL" ); // 记录别名
@@ -1244,8 +1227,6 @@ void ModbusSlaver::on_btnSave_clicked(bool getDefault)
     }
     settings->endArray();
     settings->endGroup();
-
-
 
     /* 保存寄存器列表 */
     quint32 regNums = ui->tblReg->rowCount();
@@ -1266,7 +1247,6 @@ void ModbusSlaver::on_btnSave_clicked(bool getDefault)
                 settings->setValue( "Alias",  ui->tblReg->item(i,0)->text() ); // 记录别名
             else settings->setValue( "Alias",  "NULL" ); // 记录别名
         }
-        qDebug()<<"not dead 6";
         settings->setValue( "Value",  ui->tblReg->item(i,1)->text() ); // 记录Regs状态
     }
     settings->endArray();
@@ -1280,6 +1260,7 @@ void ModbusSlaver::on_btnLoad_clicked(bool getDefault)
     QSettings *settings;
     if(getDefault){
         settings = new QSettings("default.ini", QSettings::IniFormat);
+
     }else{
         QString filePath = QFileDialog::getOpenFileName(this,"加载",qApp->applicationDirPath(),"*.ini");
         settings = new QSettings(filePath, QSettings::IniFormat);
@@ -1288,9 +1269,6 @@ void ModbusSlaver::on_btnLoad_clicked(bool getDefault)
 
     settings->beginGroup("GlobalConfig");
     ui->txtAddr->setText( settings->value( "SlaverAddr").toString());   // 起始地址
-    if( ui->txtAddr->text() == NULL ){
-        ui->txtAddr->setText("01"); // 默认01地址
-    }
     ui->rdbRTU->setChecked( settings->value( "RTUMode" ).toBool());     // 通信模式
     ui->rdbASCII ->setChecked( settings->value( "ASCIIMode" ).toBool()); // 通信模式
     settings->endGroup();
@@ -1305,10 +1283,7 @@ void ModbusSlaver::on_btnLoad_clicked(bool getDefault)
 
     /* 线圈数量 */
     quint32 coilNums = settings->beginReadArray("Coil");
-    if( coilNums == 0 ){
-        coilNums = 10;
-    }
-    ui->txtCoilNum->setText( QString::number(coilNums));
+    ui->txtCoilNum->setText( QString::number(coilNums) );
     ui->txtCoilNum->editingFinished();
 
 
@@ -1344,9 +1319,6 @@ void ModbusSlaver::on_btnLoad_clicked(bool getDefault)
     this->setRegStartAddr(tmp2.toInt(nullptr, 16));
 
     quint32 regNums = settings->beginReadArray("Register");
-    if(regNums == 0){
-       regNums = 10;
-    }
     ui->txtRegNum->setText( QString::number(regNums) );
     ui->txtRegNum->editingFinished();
 
@@ -1379,7 +1351,7 @@ void ModbusSlaver::on_btnLoad_clicked(bool getDefault)
 void ModbusSlaver::closeEvent(QCloseEvent *e)
 {
     e = e;
-    emit ui->btnSave->clicked(true);
+    this->on_btnSave_clicked(true);
 }
 /*-------------------------------- 菜单动作 ------------------------------------*/
 /**
