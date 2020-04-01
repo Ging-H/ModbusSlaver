@@ -36,6 +36,9 @@ HEADERS += \
 FORMS += \
     ui/modbusslaver.ui
 
+RC_ICONS = res/general/MB_1.ico
+
+
 # 头文件包含路径
 INCLUDEPATH += inc
 # ui.h输出路径
