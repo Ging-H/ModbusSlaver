@@ -2,10 +2,6 @@
 #include "ui_modbusslaver.h"
 #include <QHeaderView>
 #include <QFileDialog>
-//#include <QMenu>
-//#include <QSpacerItem>
-//#include <QAbstractSpinBox>
-//#include <QDir>
 #include <QDesktopServices>
 
 ModbusSlaver::ModbusSlaver(QWidget *parent) :
@@ -225,7 +221,6 @@ void ModbusSlaver::setCoilInit()
 {
     qint32 coilsNum = ui->tblCoil->rowCount();
 
-    qDebug()<< "new Coil cell";
     for(qint32 i=0; i<coilsNum; i++ ) {
         QTableWidgetItem *item = ui->tblCoil->item(i, 1);
         if( item == NULL ){
@@ -477,6 +472,7 @@ bool ModbusSlaver::handleASCIIProtocal()
         case cmd01H:
         case cmd02H:
             emit this->signal_cmd01HProtocal(ASCII);
+            break;
         case cmd03H:
         case cmd04H:
             emit this->signal_cmd03HProtocal(ASCII);
@@ -849,9 +845,9 @@ void ModbusSlaver::handleReadCoil(ProtocalMode mode)
 
             /* 文本显示 */
             QString tmpStr;
-            for(int i=0; i<rxFrame.byteNum; i+=2 ){
-                quint16 value = (rxFrame.data[i]<<8) + rxFrame.data[i+1];
-                tmpStr += QString("%1H ").arg(value, 4, 16, QLatin1Char('0')).toUpper();
+            for(int i=0; i<rxFrame.byteNum; i++ ){
+                quint16 value = rxFrame.data[i];
+                tmpStr += QString("%1H ").arg(value, 2, 16, QLatin1Char('0')).toUpper();
             }
             this->insertLogAtTime("反馈数据: " + tmpStr);
 
@@ -1224,7 +1220,6 @@ void ModbusSlaver::on_btnSave_clicked(bool getDefault)
     settings->setValue( "HideAlias",  ui->ckbCoilHideAlias->checkState() ); // 隐藏别名
     settings->setValue( "HideAddr",   ui->ckbCoilHideAddr->checkState() ); // 隐藏别名
 
-//    qDebug()<<"not dead";
 
     /* 以数组格式存储表格项 */
     settings->beginWriteArray("Coil");
@@ -1235,7 +1230,6 @@ void ModbusSlaver::on_btnSave_clicked(bool getDefault)
         if(ui->tblCoil->item(i,0) == NULL ){            
             settings->setValue( "Alias",  "NULL" ); // 记录别名
         }else{
-            qDebug()<<"not dead 2";
             if(ui->tblCoil->item(i,0)->text() != NULL)
                 settings->setValue( "Alias",  ui->tblCoil->item(i,0)->text() ); // 记录别名
             else settings->setValue( "Alias",  "NULL" ); // 记录别名
@@ -1266,7 +1260,6 @@ void ModbusSlaver::on_btnSave_clicked(bool getDefault)
                 settings->setValue( "Alias",  ui->tblReg->item(i,0)->text() ); // 记录别名
             else settings->setValue( "Alias",  "NULL" ); // 记录别名
         }
-        qDebug()<<"not dead 6";
         settings->setValue( "Value",  ui->tblReg->item(i,1)->text() ); // 记录Regs状态
     }
     settings->endArray();
