@@ -42,12 +42,11 @@ public:
     QAction *actionDecimal;
     QAction *action_AB_CD;
     QAction *action_CD_AB;
+    QAction *actionStyle;
     QWidget *centralWidget;
     QGridLayout *gridLayout_2;
     QGroupBox *QGBSerialConfig;
-    QPushButton *btnOpenPort;
-    QPushButton *btnRefresh;
-    QWidget *layoutWidget;
+    QGridLayout *gridLayout_5;
     QGridLayout *gridLayout;
     QLabel *lblPortNum;
     QComboBox *cbbPortNum;
@@ -59,20 +58,23 @@ public:
     QComboBox *cbbVerify;
     QLabel *lblStopBit;
     QComboBox *cbbStopBit;
+    QPushButton *btnRefresh;
+    QPushButton *btnOpenPort;
     QSplitter *splitter_3;
     QSplitter *splitter;
     QTableWidget *tblCoil;
     QTableWidget *tblReg;
     QTextEdit *txtMessage;
     QGroupBox *groupBox_2;
+    QGridLayout *gridLayout_3;
     QCheckBox *ckbInsertCRC;
-    QToolButton *toolButton;
     QSplitter *splitter_2;
     QRadioButton *rdbRTU;
     QRadioButton *rdbASCII;
+    QLineEdit *txtAddr;
+    QToolButton *toolButton;
     QPushButton *btnSave;
     QPushButton *btnLoad;
-    QLineEdit *txtAddr;
     QToolBox *toolBox;
     QWidget *page;
     QLineEdit *txtCoilNum;
@@ -80,10 +82,11 @@ public:
     QLineEdit *txtCoilStartAddr;
     QCheckBox *ckbCoilHideAlias;
     QWidget *page_2;
-    QLineEdit *txtRegNum;
+    QGridLayout *gridLayout_4;
+    QCheckBox *ckbRegHideAlias;
     QCheckBox *ckbRegHideAddr;
     QLineEdit *txtRegStartAddr;
-    QCheckBox *ckbRegHideAlias;
+    QLineEdit *txtRegNum;
     QToolBar *toolBar;
     QButtonGroup *bgpMSS;
 
@@ -95,6 +98,9 @@ public:
         ModbusSlaver->setMinimumSize(QSize(0, 0));
         actionModbusPro = new QAction(ModbusSlaver);
         actionModbusPro->setObjectName(QStringLiteral("actionModbusPro"));
+        QIcon icon;
+        icon.addFile(QStringLiteral(":/general/general/protocol.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionModbusPro->setIcon(icon);
         actionHelp = new QAction(ModbusSlaver);
         actionHelp->setObjectName(QStringLiteral("actionHelp"));
         actionHex = new QAction(ModbusSlaver);
@@ -105,6 +111,11 @@ public:
         action_AB_CD->setObjectName(QStringLiteral("action_AB_CD"));
         action_CD_AB = new QAction(ModbusSlaver);
         action_CD_AB->setObjectName(QStringLiteral("action_CD_AB"));
+        actionStyle = new QAction(ModbusSlaver);
+        actionStyle->setObjectName(QStringLiteral("actionStyle"));
+        QIcon icon1;
+        icon1.addFile(QStringLiteral(":/general/general/Style.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionStyle->setIcon(icon1);
         centralWidget = new QWidget(ModbusSlaver);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout_2 = new QGridLayout(centralWidget);
@@ -124,39 +135,20 @@ public:
         QGBSerialConfig->setStyleSheet(QStringLiteral(""));
         QGBSerialConfig->setFlat(false);
         QGBSerialConfig->setCheckable(false);
-        btnOpenPort = new QPushButton(QGBSerialConfig);
-        btnOpenPort->setObjectName(QStringLiteral("btnOpenPort"));
-        btnOpenPort->setEnabled(true);
-        btnOpenPort->setGeometry(QRect(69, 165, 91, 31));
-        btnOpenPort->setStyleSheet(QStringLiteral(""));
-        QIcon icon;
-        icon.addFile(QStringLiteral(":/action/action/centrejust.png"), QSize(), QIcon::Normal, QIcon::Off);
-        icon.addFile(QStringLiteral(":/action/action/process-stop.png"), QSize(), QIcon::Normal, QIcon::On);
-        btnOpenPort->setIcon(icon);
-        btnOpenPort->setCheckable(true);
-        btnOpenPort->setChecked(false);
-        btnOpenPort->setAutoDefault(false);
-        btnOpenPort->setFlat(false);
-        btnRefresh = new QPushButton(QGBSerialConfig);
-        btnRefresh->setObjectName(QStringLiteral("btnRefresh"));
-        btnRefresh->setGeometry(QRect(11, 165, 51, 31));
-        QIcon icon1;
-        icon1.addFile(QStringLiteral(":/action/action/reload.png"), QSize(), QIcon::Normal, QIcon::Off);
-        btnRefresh->setIcon(icon1);
-        layoutWidget = new QWidget(QGBSerialConfig);
-        layoutWidget->setObjectName(QStringLiteral("layoutWidget"));
-        layoutWidget->setGeometry(QRect(11, 21, 146, 136));
-        gridLayout = new QGridLayout(layoutWidget);
+        gridLayout_5 = new QGridLayout(QGBSerialConfig);
+        gridLayout_5->setSpacing(2);
+        gridLayout_5->setContentsMargins(11, 11, 11, 11);
+        gridLayout_5->setObjectName(QStringLiteral("gridLayout_5"));
+        gridLayout_5->setContentsMargins(3, 3, 3, 3);
+        gridLayout = new QGridLayout();
         gridLayout->setSpacing(6);
-        gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
-        gridLayout->setContentsMargins(0, 0, 0, 0);
-        lblPortNum = new QLabel(layoutWidget);
+        lblPortNum = new QLabel(QGBSerialConfig);
         lblPortNum->setObjectName(QStringLiteral("lblPortNum"));
 
         gridLayout->addWidget(lblPortNum, 0, 0, 1, 1);
 
-        cbbPortNum = new QComboBox(layoutWidget);
+        cbbPortNum = new QComboBox(QGBSerialConfig);
         cbbPortNum->setObjectName(QStringLiteral("cbbPortNum"));
         QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Fixed);
         sizePolicy1.setHorizontalStretch(0);
@@ -169,49 +161,82 @@ public:
 
         gridLayout->addWidget(cbbPortNum, 0, 1, 1, 1);
 
-        lblBaudRate = new QLabel(layoutWidget);
+        lblBaudRate = new QLabel(QGBSerialConfig);
         lblBaudRate->setObjectName(QStringLiteral("lblBaudRate"));
 
         gridLayout->addWidget(lblBaudRate, 1, 0, 1, 1);
 
-        cbbBaud = new QComboBox(layoutWidget);
+        cbbBaud = new QComboBox(QGBSerialConfig);
         cbbBaud->setObjectName(QStringLiteral("cbbBaud"));
         cbbBaud->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
         gridLayout->addWidget(cbbBaud, 1, 1, 1, 1);
 
-        lblDataBit = new QLabel(layoutWidget);
+        lblDataBit = new QLabel(QGBSerialConfig);
         lblDataBit->setObjectName(QStringLiteral("lblDataBit"));
 
         gridLayout->addWidget(lblDataBit, 2, 0, 1, 1);
 
-        cbbDataBit = new QComboBox(layoutWidget);
+        cbbDataBit = new QComboBox(QGBSerialConfig);
         cbbDataBit->setObjectName(QStringLiteral("cbbDataBit"));
         cbbDataBit->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
         gridLayout->addWidget(cbbDataBit, 2, 1, 1, 1);
 
-        lblVerify = new QLabel(layoutWidget);
+        lblVerify = new QLabel(QGBSerialConfig);
         lblVerify->setObjectName(QStringLiteral("lblVerify"));
 
         gridLayout->addWidget(lblVerify, 3, 0, 1, 1);
 
-        cbbVerify = new QComboBox(layoutWidget);
+        cbbVerify = new QComboBox(QGBSerialConfig);
         cbbVerify->setObjectName(QStringLiteral("cbbVerify"));
         cbbVerify->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
         gridLayout->addWidget(cbbVerify, 3, 1, 1, 1);
 
-        lblStopBit = new QLabel(layoutWidget);
+        lblStopBit = new QLabel(QGBSerialConfig);
         lblStopBit->setObjectName(QStringLiteral("lblStopBit"));
 
         gridLayout->addWidget(lblStopBit, 4, 0, 1, 1);
 
-        cbbStopBit = new QComboBox(layoutWidget);
+        cbbStopBit = new QComboBox(QGBSerialConfig);
         cbbStopBit->setObjectName(QStringLiteral("cbbStopBit"));
         cbbStopBit->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
         gridLayout->addWidget(cbbStopBit, 4, 1, 1, 1);
+
+
+        gridLayout_5->addLayout(gridLayout, 0, 0, 1, 2);
+
+        btnRefresh = new QPushButton(QGBSerialConfig);
+        btnRefresh->setObjectName(QStringLiteral("btnRefresh"));
+        sizePolicy1.setHeightForWidth(btnRefresh->sizePolicy().hasHeightForWidth());
+        btnRefresh->setSizePolicy(sizePolicy1);
+        btnRefresh->setMaximumSize(QSize(60, 16777215));
+        QIcon icon2;
+        icon2.addFile(QStringLiteral(":/action/action/refresh.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnRefresh->setIcon(icon2);
+        btnRefresh->setIconSize(QSize(32, 32));
+
+        gridLayout_5->addWidget(btnRefresh, 1, 0, 1, 1);
+
+        btnOpenPort = new QPushButton(QGBSerialConfig);
+        btnOpenPort->setObjectName(QStringLiteral("btnOpenPort"));
+        btnOpenPort->setEnabled(true);
+        sizePolicy1.setHeightForWidth(btnOpenPort->sizePolicy().hasHeightForWidth());
+        btnOpenPort->setSizePolicy(sizePolicy1);
+        btnOpenPort->setStyleSheet(QStringLiteral(""));
+        QIcon icon3;
+        icon3.addFile(QStringLiteral(":/general/general/com_disconnect.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon3.addFile(QStringLiteral(":/general/general/com_connect_1.png"), QSize(), QIcon::Normal, QIcon::On);
+        btnOpenPort->setIcon(icon3);
+        btnOpenPort->setIconSize(QSize(32, 32));
+        btnOpenPort->setCheckable(true);
+        btnOpenPort->setChecked(false);
+        btnOpenPort->setAutoDefault(false);
+        btnOpenPort->setFlat(false);
+
+        gridLayout_5->addWidget(btnOpenPort, 1, 1, 1, 1);
 
 
         gridLayout_2->addWidget(QGBSerialConfig, 0, 0, 1, 1);
@@ -317,54 +342,84 @@ public:
         groupBox_2->setSizePolicy(sizePolicy3);
         groupBox_2->setMinimumSize(QSize(0, 121));
         groupBox_2->setMaximumSize(QSize(171, 16777215));
+        gridLayout_3 = new QGridLayout(groupBox_2);
+        gridLayout_3->setSpacing(2);
+        gridLayout_3->setContentsMargins(11, 11, 11, 11);
+        gridLayout_3->setObjectName(QStringLiteral("gridLayout_3"));
+        gridLayout_3->setContentsMargins(3, 3, 3, 3);
         ckbInsertCRC = new QCheckBox(groupBox_2);
         ckbInsertCRC->setObjectName(QStringLiteral("ckbInsertCRC"));
-        ckbInsertCRC->setGeometry(QRect(10, 30, 151, 18));
         ckbInsertCRC->setChecked(true);
-        toolButton = new QToolButton(groupBox_2);
-        toolButton->setObjectName(QStringLiteral("toolButton"));
-        toolButton->setGeometry(QRect(10, 85, 40, 25));
+
+        gridLayout_3->addWidget(ckbInsertCRC, 0, 0, 1, 3);
+
         splitter_2 = new QSplitter(groupBox_2);
         splitter_2->setObjectName(QStringLiteral("splitter_2"));
-        splitter_2->setGeometry(QRect(10, 60, 111, 18));
         splitter_2->setOrientation(Qt::Horizontal);
+        splitter_2->setHandleWidth(0);
         rdbRTU = new QRadioButton(splitter_2);
         bgpMSS = new QButtonGroup(ModbusSlaver);
         bgpMSS->setObjectName(QStringLiteral("bgpMSS"));
         bgpMSS->addButton(rdbRTU);
         rdbRTU->setObjectName(QStringLiteral("rdbRTU"));
+        QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        sizePolicy4.setHorizontalStretch(1);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(rdbRTU->sizePolicy().hasHeightForWidth());
+        rdbRTU->setSizePolicy(sizePolicy4);
         rdbRTU->setChecked(true);
         splitter_2->addWidget(rdbRTU);
         rdbASCII = new QRadioButton(splitter_2);
         bgpMSS->addButton(rdbASCII);
         rdbASCII->setObjectName(QStringLiteral("rdbASCII"));
+        sizePolicy4.setHeightForWidth(rdbASCII->sizePolicy().hasHeightForWidth());
+        rdbASCII->setSizePolicy(sizePolicy4);
         splitter_2->addWidget(rdbASCII);
-        btnSave = new QPushButton(groupBox_2);
-        btnSave->setObjectName(QStringLiteral("btnSave"));
-        btnSave->setGeometry(QRect(65, 85, 40, 25));
-        btnLoad = new QPushButton(groupBox_2);
-        btnLoad->setObjectName(QStringLiteral("btnLoad"));
-        btnLoad->setGeometry(QRect(120, 85, 40, 25));
+
+        gridLayout_3->addWidget(splitter_2, 1, 0, 1, 2);
+
         txtAddr = new QLineEdit(groupBox_2);
         txtAddr->setObjectName(QStringLiteral("txtAddr"));
-        txtAddr->setGeometry(QRect(125, 60, 36, 20));
-        ckbInsertCRC->raise();
-        toolButton->raise();
-        splitter_2->raise();
-        btnSave->raise();
-        btnLoad->raise();
-        txtAddr->raise();
-        splitter_3->raise();
+
+        gridLayout_3->addWidget(txtAddr, 1, 2, 1, 1);
+
+        toolButton = new QToolButton(groupBox_2);
+        toolButton->setObjectName(QStringLiteral("toolButton"));
+        QIcon icon4;
+        icon4.addFile(QStringLiteral(":/action/action/clear.png"), QSize(), QIcon::Normal, QIcon::Off);
+        toolButton->setIcon(icon4);
+        toolButton->setIconSize(QSize(25, 25));
+
+        gridLayout_3->addWidget(toolButton, 2, 0, 1, 1);
+
+        btnSave = new QPushButton(groupBox_2);
+        btnSave->setObjectName(QStringLiteral("btnSave"));
+        QIcon icon5;
+        icon5.addFile(QStringLiteral(":/general/general/Save_4.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnSave->setIcon(icon5);
+        btnSave->setIconSize(QSize(25, 25));
+
+        gridLayout_3->addWidget(btnSave, 2, 1, 1, 1);
+
+        btnLoad = new QPushButton(groupBox_2);
+        btnLoad->setObjectName(QStringLiteral("btnLoad"));
+        QIcon icon6;
+        icon6.addFile(QStringLiteral(":/general/general/edit_open.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnLoad->setIcon(icon6);
+        btnLoad->setIconSize(QSize(25, 25));
+
+        gridLayout_3->addWidget(btnLoad, 2, 2, 1, 1);
+
 
         gridLayout_2->addWidget(groupBox_2, 1, 0, 1, 1);
 
         toolBox = new QToolBox(centralWidget);
         toolBox->setObjectName(QStringLiteral("toolBox"));
-        QSizePolicy sizePolicy4(QSizePolicy::Maximum, QSizePolicy::Preferred);
-        sizePolicy4.setHorizontalStretch(0);
-        sizePolicy4.setVerticalStretch(0);
-        sizePolicy4.setHeightForWidth(toolBox->sizePolicy().hasHeightForWidth());
-        toolBox->setSizePolicy(sizePolicy4);
+        QSizePolicy sizePolicy5(QSizePolicy::Maximum, QSizePolicy::Preferred);
+        sizePolicy5.setHorizontalStretch(0);
+        sizePolicy5.setVerticalStretch(0);
+        sizePolicy5.setHeightForWidth(toolBox->sizePolicy().hasHeightForWidth());
+        toolBox->setSizePolicy(sizePolicy5);
         toolBox->setMinimumSize(QSize(171, 0));
         toolBox->setMaximumSize(QSize(171, 16777215));
         page = new QWidget();
@@ -386,18 +441,30 @@ public:
         page_2 = new QWidget();
         page_2->setObjectName(QStringLiteral("page_2"));
         page_2->setGeometry(QRect(0, 0, 171, 68));
-        txtRegNum = new QLineEdit(page_2);
-        txtRegNum->setObjectName(QStringLiteral("txtRegNum"));
-        txtRegNum->setGeometry(QRect(85, 40, 76, 20));
-        ckbRegHideAddr = new QCheckBox(page_2);
-        ckbRegHideAddr->setObjectName(QStringLiteral("ckbRegHideAddr"));
-        ckbRegHideAddr->setGeometry(QRect(85, 10, 71, 18));
-        txtRegStartAddr = new QLineEdit(page_2);
-        txtRegStartAddr->setObjectName(QStringLiteral("txtRegStartAddr"));
-        txtRegStartAddr->setGeometry(QRect(5, 40, 71, 20));
+        gridLayout_4 = new QGridLayout(page_2);
+        gridLayout_4->setSpacing(6);
+        gridLayout_4->setContentsMargins(11, 11, 11, 11);
+        gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
         ckbRegHideAlias = new QCheckBox(page_2);
         ckbRegHideAlias->setObjectName(QStringLiteral("ckbRegHideAlias"));
-        ckbRegHideAlias->setGeometry(QRect(5, 10, 71, 18));
+
+        gridLayout_4->addWidget(ckbRegHideAlias, 0, 0, 1, 1);
+
+        ckbRegHideAddr = new QCheckBox(page_2);
+        ckbRegHideAddr->setObjectName(QStringLiteral("ckbRegHideAddr"));
+
+        gridLayout_4->addWidget(ckbRegHideAddr, 0, 1, 1, 1);
+
+        txtRegStartAddr = new QLineEdit(page_2);
+        txtRegStartAddr->setObjectName(QStringLiteral("txtRegStartAddr"));
+
+        gridLayout_4->addWidget(txtRegStartAddr, 1, 0, 1, 1);
+
+        txtRegNum = new QLineEdit(page_2);
+        txtRegNum->setObjectName(QStringLiteral("txtRegNum"));
+
+        gridLayout_4->addWidget(txtRegNum, 1, 1, 1, 1);
+
         toolBox->addItem(page_2, QStringLiteral("Reg"));
 
         gridLayout_2->addWidget(toolBox, 2, 0, 1, 1);
@@ -416,8 +483,8 @@ public:
         QWidget::setTabOrder(ckbInsertCRC, rdbRTU);
         QWidget::setTabOrder(rdbRTU, rdbASCII);
 
-        toolBar->addAction(actionHelp);
         toolBar->addAction(actionModbusPro);
+        toolBar->addAction(actionStyle);
 
         retranslateUi(ModbusSlaver);
         QObject::connect(toolButton, SIGNAL(clicked()), txtMessage, SLOT(clear()));
@@ -438,17 +505,18 @@ public:
         actionDecimal->setText(QApplication::translate("ModbusSlaver", "\345\215\201\350\277\233\345\210\266", Q_NULLPTR));
         action_AB_CD->setText(QApplication::translate("ModbusSlaver", "\346\265\256\347\202\271\346\225\260 AB CD", Q_NULLPTR));
         action_CD_AB->setText(QApplication::translate("ModbusSlaver", "\346\265\256\347\202\271\346\225\260 CD AB", Q_NULLPTR));
+        actionStyle->setText(QApplication::translate("ModbusSlaver", "Style", Q_NULLPTR));
         QGBSerialConfig->setTitle(QApplication::translate("ModbusSlaver", "\344\270\262\345\217\243\350\256\276\347\275\256", Q_NULLPTR));
-        btnOpenPort->setText(QApplication::translate("ModbusSlaver", "\346\211\223\345\274\200\344\270\262\345\217\243", Q_NULLPTR));
-#ifndef QT_NO_TOOLTIP
-        btnRefresh->setToolTip(QApplication::translate("ModbusSlaver", "\345\210\267\346\226\260\347\253\257\345\217\243\345\217\267", Q_NULLPTR));
-#endif // QT_NO_TOOLTIP
-        btnRefresh->setText(QApplication::translate("ModbusSlaver", "\345\210\267\346\226\260", Q_NULLPTR));
         lblPortNum->setText(QApplication::translate("ModbusSlaver", "\347\253\257\345\217\243\345\217\267", Q_NULLPTR));
         lblBaudRate->setText(QApplication::translate("ModbusSlaver", "\346\263\242\347\211\271\347\216\207", Q_NULLPTR));
         lblDataBit->setText(QApplication::translate("ModbusSlaver", "\346\225\260\346\215\256\344\275\215", Q_NULLPTR));
         lblVerify->setText(QApplication::translate("ModbusSlaver", "\346\240\241\351\252\214", Q_NULLPTR));
         lblStopBit->setText(QApplication::translate("ModbusSlaver", "\345\201\234\346\255\242\344\275\215", Q_NULLPTR));
+#ifndef QT_NO_TOOLTIP
+        btnRefresh->setToolTip(QApplication::translate("ModbusSlaver", "\345\210\267\346\226\260\347\253\257\345\217\243\345\217\267", Q_NULLPTR));
+#endif // QT_NO_TOOLTIP
+        btnRefresh->setText(QApplication::translate("ModbusSlaver", "\345\210\267\346\226\260", Q_NULLPTR));
+        btnOpenPort->setText(QApplication::translate("ModbusSlaver", "\346\211\223\345\274\200\344\270\262\345\217\243", Q_NULLPTR));
         QTableWidgetItem *___qtablewidgetitem = tblCoil->horizontalHeaderItem(0);
         ___qtablewidgetitem->setText(QApplication::translate("ModbusSlaver", "\345\210\253\345\220\215", Q_NULLPTR));
         QTableWidgetItem *___qtablewidgetitem1 = tblCoil->horizontalHeaderItem(1);
@@ -504,24 +572,36 @@ public:
         ___qtablewidgetitem23->setText(QApplication::translate("ModbusSlaver", "0009", Q_NULLPTR));
         groupBox_2->setTitle(QApplication::translate("ModbusSlaver", "Config", Q_NULLPTR));
         ckbInsertCRC->setText(QApplication::translate("ModbusSlaver", "\350\207\252\345\212\250\346\267\273\345\212\240\346\240\241\351\252\214\347\240\201", Q_NULLPTR));
-        toolButton->setText(QApplication::translate("ModbusSlaver", "\346\270\205\347\251\272", Q_NULLPTR));
         rdbRTU->setText(QApplication::translate("ModbusSlaver", "RTU", Q_NULLPTR));
         rdbASCII->setText(QApplication::translate("ModbusSlaver", "ASCII", Q_NULLPTR));
-        btnSave->setText(QApplication::translate("ModbusSlaver", "\344\277\235\345\255\230", Q_NULLPTR));
-        btnLoad->setText(QApplication::translate("ModbusSlaver", "\345\212\240\350\275\275", Q_NULLPTR));
 #ifndef QT_NO_TOOLTIP
         txtAddr->setToolTip(QApplication::translate("ModbusSlaver", "\344\273\216\346\234\272\345\234\260\345\235\200", Q_NULLPTR));
 #endif // QT_NO_TOOLTIP
         txtAddr->setText(QApplication::translate("ModbusSlaver", "01", Q_NULLPTR));
+        toolButton->setText(QApplication::translate("ModbusSlaver", "\346\270\205\347\251\272", Q_NULLPTR));
+        btnSave->setText(QApplication::translate("ModbusSlaver", "\344\277\235\345\255\230", Q_NULLPTR));
+        btnLoad->setText(QApplication::translate("ModbusSlaver", "\345\212\240\350\275\275", Q_NULLPTR));
+#ifndef QT_NO_TOOLTIP
+        txtCoilNum->setToolTip(QApplication::translate("ModbusSlaver", "\346\225\260\351\207\217", Q_NULLPTR));
+#endif // QT_NO_TOOLTIP
         txtCoilNum->setPlaceholderText(QApplication::translate("ModbusSlaver", "\346\225\260\351\207\217", Q_NULLPTR));
         ckbCoilHideAddr->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\234\260\345\235\200", Q_NULLPTR));
+#ifndef QT_NO_TOOLTIP
+        txtCoilStartAddr->setToolTip(QApplication::translate("ModbusSlaver", "\350\265\267\345\247\213\345\234\260\345\235\200", Q_NULLPTR));
+#endif // QT_NO_TOOLTIP
         txtCoilStartAddr->setPlaceholderText(QApplication::translate("ModbusSlaver", "\350\265\267\345\247\213\345\234\260\345\235\200", Q_NULLPTR));
         ckbCoilHideAlias->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\210\253\345\220\215", Q_NULLPTR));
         toolBox->setItemText(toolBox->indexOf(page), QApplication::translate("ModbusSlaver", "Coil", Q_NULLPTR));
-        txtRegNum->setPlaceholderText(QApplication::translate("ModbusSlaver", "\346\225\260\351\207\217", Q_NULLPTR));
-        ckbRegHideAddr->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\234\260\345\235\200", Q_NULLPTR));
-        txtRegStartAddr->setPlaceholderText(QApplication::translate("ModbusSlaver", "\350\265\267\345\247\213\345\234\260\345\235\200", Q_NULLPTR));
         ckbRegHideAlias->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\210\253\345\220\215", Q_NULLPTR));
+        ckbRegHideAddr->setText(QApplication::translate("ModbusSlaver", "\351\232\220\350\227\217\345\234\260\345\235\200", Q_NULLPTR));
+#ifndef QT_NO_TOOLTIP
+        txtRegStartAddr->setToolTip(QApplication::translate("ModbusSlaver", "\350\265\267\345\247\213\345\234\260\345\235\200", Q_NULLPTR));
+#endif // QT_NO_TOOLTIP
+        txtRegStartAddr->setPlaceholderText(QApplication::translate("ModbusSlaver", "\350\265\267\345\247\213\345\234\260\345\235\200", Q_NULLPTR));
+#ifndef QT_NO_TOOLTIP
+        txtRegNum->setToolTip(QApplication::translate("ModbusSlaver", "\346\225\260\351\207\217", Q_NULLPTR));
+#endif // QT_NO_TOOLTIP
+        txtRegNum->setPlaceholderText(QApplication::translate("ModbusSlaver", "\346\225\260\351\207\217", Q_NULLPTR));
         toolBox->setItemText(toolBox->indexOf(page_2), QApplication::translate("ModbusSlaver", "Reg", Q_NULLPTR));
         toolBar->setWindowTitle(QApplication::translate("ModbusSlaver", "toolBar", Q_NULLPTR));
     } // retranslateUi

@@ -176,6 +176,8 @@ private slots:
 
     void on_toolButton_clicked();
 
+    void on_actionStyle_triggered();
+
 protected :
     void closeEvent(QCloseEvent *event);
 

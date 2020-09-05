@@ -3,6 +3,9 @@
 #include <QHeaderView>
 #include <QFileDialog>
 #include <QDesktopServices>
+#include <QTextStream>
+#include <QStyleFactory>
+#include <QDebug>
 
 ModbusSlaver::ModbusSlaver(QWidget *parent) :
     QMainWindow(parent),
@@ -23,6 +26,10 @@ ModbusSlaver::ModbusSlaver(QWidget *parent) :
     connect(this,SIGNAL(signal_exceptionHandle(ModbusCMD,ExceptionCode)),this,SLOT(slots_exceptionHandle(ModbusCMD,ExceptionCode)));
 
     this->tableInit();
+    /* ui初始化 */
+    this->setWindowTitle("硬石电子-ModbusSlaver v1.0");
+    QApplication::setStyle(QStyleFactory::create("fusion"));// fusion 风格
+
 }
 
 ModbusSlaver::~ModbusSlaver()
@@ -563,8 +570,8 @@ void ModbusSlaver::slots_cmd01HProtocal(ProtocalMode mode)
     }
     rxFrame.slaveAddr = rxbuf.at(0);
     rxFrame.cmd = rxbuf.at(1); // 01 or 02H
-    rxFrame.regAddr = (quint8)(rxbuf.at(2)<<8) + (quint8)rxbuf.at(3);
-    rxFrame.regNum  = (quint8)(rxbuf.at(2)<<4) + (quint8)rxbuf.at(5);
+    rxFrame.regAddr = (quint16)(rxbuf.at(2)<<8) | (quint8)rxbuf.at(3);
+    rxFrame.regNum  = (quint16)(rxbuf.at(4)<<4) | (quint8)rxbuf.at(5);
     if( (rxFrame.regNum%8) != 0 ){
         rxFrame.byteNum = (rxFrame.regNum / 8) + 1 ;
     }else{
@@ -603,8 +610,8 @@ void ModbusSlaver::slots_cmd03HProtocal(ProtocalMode mode)
     }
     rxFrame.slaveAddr = rxbuf.at(0);
     rxFrame.cmd = rxbuf.at(1); // 03H or 04H
-    rxFrame.regAddr = (quint8)(rxbuf.at(2)<<8) + (quint8)rxbuf.at(3);
-    rxFrame.regNum  = (quint8)(rxbuf.at(2)<<4) + (quint8)rxbuf.at(5);
+    rxFrame.regAddr = (quint16)(rxbuf.at(2)<<8) | (quint8)rxbuf.at(3);
+    rxFrame.regNum  = (quint16)(rxbuf.at(4)<<8) | (quint8)rxbuf.at(5);
     rxFrame.byteNum = rxFrame.regNum * 2;
     /* read register */
     this->handleReadRegister(mode);
@@ -641,7 +648,7 @@ void ModbusSlaver::slots_cmd05HProtocal(ProtocalMode mode )
 
     rxFrame.slaveAddr = rxbuf.at(0);
     rxFrame.cmd = rxbuf.at(1);
-    rxFrame.regAddr = ((quint8)rxbuf.at(2)<<8) + (quint8)rxbuf.at(3);
+    rxFrame.regAddr = ((quint8)rxbuf.at(2)<<8) | (quint8)rxbuf.at(3);
     rxFrame.regNum  = 1;
     rxFrame.byteNum = 2;
     rxFrame.data[0] = (quint8)rxbuf.at(4);
@@ -691,7 +698,7 @@ void ModbusSlaver::slots_cmd06HProtocal(ProtocalMode mode)
 
     rxFrame.slaveAddr = rxbuf.at(0);
     rxFrame.cmd = rxbuf.at(1);
-    rxFrame.regAddr = ((quint8)rxbuf.at(2)<<8) + (quint8)rxbuf.at(3);
+    rxFrame.regAddr = ((quint8)rxbuf.at(2)<<8) | (quint8)rxbuf.at(3);
     rxFrame.data[0] = rxbuf.at(4);
     rxFrame.data[1] = rxbuf.at(5);
     /* read register */
@@ -812,6 +819,7 @@ void ModbusSlaver::slots_cmd10HProtocal(ProtocalMode mode )
  */
 void ModbusSlaver::handleReadCoil(ProtocalMode mode)
 {
+    Q_UNUSED(mode)
     quint16 startAddr = ui->tblCoil->verticalHeaderItem(0)->text().toInt(nullptr,16);
     quint16 endAddr = startAddr + ui->tblCoil->rowCount()-1;
 
@@ -865,6 +873,7 @@ void ModbusSlaver::handleReadCoil(ProtocalMode mode)
  */
 void ModbusSlaver::handleWriteCoil(  ProtocalMode mode, bool multiCoil )
 {
+    Q_UNUSED(mode)
     quint16 startAddr = ui->tblCoil->verticalHeaderItem(0)->text().toInt(nullptr,16);
     quint16 endAddr = startAddr + ui->tblCoil->rowCount()-1;
     quint16 row = rxFrame.regAddr-startAddr; // 获得起始地址所在行;
@@ -952,6 +961,7 @@ void ModbusSlaver::handleWriteCoil(  ProtocalMode mode, bool multiCoil )
  */
 void ModbusSlaver::handleWriteRegister( ProtocalMode mode, bool multiReg)
 {
+    Q_UNUSED(mode)
     quint16 startAddr = ui->tblReg->verticalHeaderItem(0)->text().toInt(nullptr,16);
     quint16 endAddr = startAddr + ui->tblReg->rowCount()-1;
     QByteArray txbuf;
@@ -1045,6 +1055,7 @@ void ModbusSlaver::slots_exceptionHandle(ModbusCMD cmd,ExceptionCode exception)
  */
 void ModbusSlaver::handleReadRegister(ProtocalMode mode)
 {
+    Q_UNUSED(mode)
     quint16 startAddr = ui->tblReg->verticalHeaderItem(0)->text().toInt(nullptr,16);
     quint16 endAddr = startAddr + ui->tblReg->rowCount()-1;
 
@@ -1390,4 +1401,29 @@ void ModbusSlaver::on_actionModbusPro_triggered()
 void ModbusSlaver::on_toolButton_clicked()
 {
     rxDataBuf.clear();
+}
+
+/**
+ * @brief ModbusMaster::on_actionStyle_triggered 转换背景色
+ */
+void ModbusSlaver::on_actionStyle_triggered()
+{
+    static bool style = true;
+    if(style == true){
+        style = false;
+        /* ui初始化 */
+        QFile file(":/theme/blackOrange.css");              // QSS文件
+        if (!file.open(QFile::ReadOnly)){  // 打开文件
+            return;
+        }
+        QTextStream in(&file);
+        in.setCodec("UTF-8");
+        QString qss = in.readAll();        // 读取数据
+        qApp->setStyleSheet(qss);          // 应用
+
+    }else{
+        qApp->setStyleSheet("");          // 应用
+        style = true;
+    }
+
 }

@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/action">
+        <file>action/refresh.png</file>
+        <file>action/clear.png</file>
+    </qresource>
+    <qresource prefix="/general">
+        <file>general/com_connect_1.png</file>
+        <file>general/com_disconnect.png</file>
+        <file>general/pdf_file.ico</file>
+        <file>general/protocol.png</file>
+        <file>general/Style.png</file>
+        <file>general/verify.png</file>
+        <file>general/ing10.ico</file>
+        <file>general/MB_1.ico</file>
+        <file>general/modbus.ico</file>
+        <file>general/edit_open.png</file>
+        <file>general/Save_4.png</file>
+    </qresource>
+    <qresource prefix="/theme">
+        <file>blackOrange.css</file>
+    </qresource>
+</RCC>
