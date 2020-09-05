@@ -46,6 +46,6 @@ UI_DIR += ./ui
 # 可执行文件.exe输出路径
 DESTDIR = ./exe
 
-#RESOURCES += \
-#        res/images.qrc
+RESOURCES += \
+        res/images.qrc
 
